@@ -1,0 +1,134 @@
+<div class="hidden smooth-transition" id="section-datos">
+            <div class="bg-terapia-wood/5 rounded-2xl p-6 border border-terapia-wood/20">
+                <h3 class="text-lg font-semibold mb-4 text-terapia-text"><span class="bg-terapia-wood text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-sm mr-2">3</span> Tus datos para el pedido</h3>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                    <input type="text" id="input-nombre" placeholder="Ej: Valentina" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                    <input type="text" id="input-apellido" placeholder="Ej: Gainza" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Rut</label>
+                    <input type="text" id="input-rut" placeholder="Ej: 12.345.678-9" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                    <input type="email" id="input-correo" placeholder="Ej: correo@ejemplo.com" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                    <input type="tel" id="input-telefono" placeholder="Ej: +56912345678" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="container-region-comuna">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Región</label>
+                        <select id="select-region" onchange="actualizarComunas()" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition cursor-pointer">
+                            <option value="">Selecciona tu región</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Comuna</label>
+                        <select id="input-comuna" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer" disabled>
+                            <option value="">Selecciona tu comuna</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4" id="container-direccion">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dirección Exacta</label>
+                    <input type="text" id="input-direccion" placeholder="Ej: Av. Providencia 1234, Depto 12" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
+                    <select id="select-pago" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition cursor-pointer">
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Link de Pago (Flow)">Link de Pago (Flow)</option>
+                    </select>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border-l-4 border-terapia-sage shadow-sm mb-6">
+                    <h4 class="font-semibold text-terapia-sageDark mb-2">Resumen de tu inversión</h4>
+                    <div class="flex justify-between items-center mb-1">
+                        <span id="resumen-producto" class="text-gray-600">Set...</span>
+                        <span id="resumen-precio" class="font-medium">$...</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 hidden" id="resumen-caja-row">
+                        <span class="text-gray-500 text-sm">Embalaje (Requisito Chilexpress)</span>
+                        <span class="text-sm font-medium">+$1.500</span>
+                    </div>
+                    <div class="border-t border-gray-100 pt-2 flex justify-between items-center">
+                        <span class="font-semibold text-lg">Total a transferir ahora:</span>
+                        <span id="resumen-total" class="font-bold text-2xl text-terapia-wood">$...</span>
+                    </div>
+                    <p id="resumen-nota-envio" class="text-xs text-gray-500 mt-2 italic"></p>
+                </div>
+
+                <button onclick="generarWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                    Enviar mi pedido por WhatsApp
+                </button>
+                <p class="text-center text-xs text-gray-500 mt-3">Al hacer clic, se abrirá tu WhatsApp con el mensaje listo para enviar a Katherine.</p>
+            </div>
+        </div>
+
+<script is:inline>
+    const dataRegiones = {
+        "Arica y Parinacota": ["Arica", "Camarones", "Putre", "General Lagos"],
+        "Tarapacá": ["Iquique", "Alto Hospicio", "Pozo Almonte", "Camiña", "Colchane", "Huara", "Pica"],
+        "Antofagasta": ["Antofagasta", "Mejillones", "Sierra Gorda", "Taltal", "Calama", "Ollagüe", "San Pedro de Atacama", "Tocopilla", "María Elena"],
+        "Atacama": ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Alto del Carmen", "Freirina", "Huasco"],
+        "Coquimbo": ["La Serena", "Coquimbo", "Andacollo", "La Higuera", "Paihuano", "Vicuña", "Illapel", "Canela", "Los Vilos", "Salamanca", "Ovalle", "Combarbalá", "Monte Patria", "Punitaqui", "Río Hurtado"],
+        "Valparaíso": ["Valparaíso", "Casablanca", "Concón", "Juan Fernández", "Puchuncaví", "Quintero", "Viña del Mar", "Isla de Pascua", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "La Ligua", "Cabildo", "Papudo", "Petorca", "Zapallar", "Quillota", "Calera", "Hijuelas", "La Cruz", "Nogales", "San Antonio", "Algarrobo", "Cartagena", "El Quisco", "El Tabo", "Santo Domingo", "San Felipe", "Catemu", "Llaillay", "Panquehue", "Putaendo", "Santa María", "Quilpué", "Limache", "Olmué", "Villa Alemana"],
+        "Metropolitana de Santiago": ["Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Santiago", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Calera de Tango", "Paine", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"],
+        "Libertador Gral. Bernardo O'Higgins": ["Rancagua", "Codegua", "Coinco", "Coltauco", "Doñihue", "Graneros", "Las Cabras", "Machalí", "Malloa", "Mostazal", "Olivar", "Peumo", "Pichidegua", "Quinta de Tilcoco", "Rengo", "Requínoa", "San Vicente", "Pichilemu", "La Estrella", "Litueche", "Marchihue", "Navidad", "Paredones", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Placilla", "Pumanque", "Santa Cruz"],
+        "Maule": ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"],
+        "Ñuble": ["Cobquecura", "Coelemu", "Ninhue", "Portezuelo", "Quirihue", "Ránquil", "Treguaco", "Bulnes", "Chillán Viejo", "Chillán", "El Carmen", "Pemuco", "Pinto", "Quillón", "San Ignacio", "Yungay", "Coihueco", "Ñiquén", "San Carlos", "San Fabián", "San Nicolás"],
+        "Biobío": ["Concepción", "Coronel", "Chiguayante", "Florida", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Alto Biobío"],
+        "Araucanía": ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Purén", "Renaico", "Traiguén", "Victoria"],
+        "Los Ríos": ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"],
+        "Los Lagos": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Los Muermos", "Llanquihue", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo", "Chaitén", "Futaleufú", "Hualaihué", "Palena"],
+        "Aysén": ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"],
+        "Magallanes y de la Antártica Chilena": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"]
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const selectRegion = document.getElementById("select-region");
+        if (selectRegion) {
+            Object.keys(dataRegiones).forEach(region => {
+                const option = document.createElement("option");
+                option.value = region;
+                option.text = region;
+                selectRegion.appendChild(option);
+            });
+        }
+    });
+
+    function actualizarComunas() {
+        const selectRegion = document.getElementById("select-region");
+        const selectComuna = document.getElementById("input-comuna");
+        const regionSeleccionada = selectRegion.value;
+        
+        selectComuna.innerHTML = '<option value="">Selecciona tu comuna</option>';
+        
+        if (regionSeleccionada && dataRegiones[regionSeleccionada]) {
+            dataRegiones[regionSeleccionada].forEach(comuna => {
+                const option = document.createElement("option");
+                option.value = comuna;
+                option.text = comuna;
+                selectComuna.appendChild(option);
+            });
+            selectComuna.disabled = false;
+        } else {
+            selectComuna.disabled = true;
+        }
+    }
+</script>

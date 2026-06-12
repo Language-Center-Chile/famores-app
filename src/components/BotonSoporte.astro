@@ -1,0 +1,10 @@
+---
+const numeroKatherine = "56958083908";
+const mensaje = "¡Hola Katherine! Estoy en la página web y tengo una duda antes de pedir mis Famores...";
+const urlWhatsApp = `https://wa.me/${numeroKatherine}?text=${encodeURIComponent(mensaje)}`;
+---
+
+<a href={urlWhatsApp} target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 bg-[#25D366] hover:bg-[#1DA851] text-white py-3 px-5 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 z-50">
+    <i class="fa-brands fa-whatsapp text-2xl"></i>
+    <span class="font-semibold hidden sm:inline">Hablar con Katherine</span>
+</a>

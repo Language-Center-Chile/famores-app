@@ -1,0 +1,49 @@
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100">
+    <h3 class="text-lg font-semibold mb-4 text-terapia-text">
+        <span
+            class="bg-terapia-sage text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-sm mr-2"
+            >1</span
+        > ¿Qué set deseas llevar?
+    </h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+            class="option-card smooth-transition rounded-xl p-5 relative"
+            id="card-pintado"
+            onclick="selectSet('pintado', 39990)"
+        >
+            <div class="absolute top-4 right-4 selected-icon">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fa-solid fa-palette text-2xl text-terapia-woodLight"
+                ></i>
+                <h4 class="font-semibold text-lg">Set Pintado</h4>
+            </div>
+            <p class="text-2xl font-bold text-terapia-sageDark mb-2">$39.990</p>
+            <p class="text-sm text-gray-500">
+                Incluye 2 familias de 7 integrantes (14 figuras). Listos para
+                acompañar tus sesiones.
+            </p>
+        </div>
+
+        <div
+            class="option-card smooth-transition rounded-xl p-5 relative"
+            id="card-sin-pintar"
+            onclick="selectSet('sin_pintar', 25000)"
+        >
+            <div class="absolute top-4 right-4 selected-icon">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fa-solid fa-tree text-2xl text-terapia-woodLight"></i>
+                <h4 class="font-semibold text-lg">Set Sin Pintar</h4>
+            </div>
+            <p class="text-2xl font-bold text-terapia-sageDark mb-2">$25.000</p>
+            <p class="text-sm text-gray-500">
+                Incluye 14 figuras en madera natural. Ideal para personalizar y
+                pintar con tu propia energía.
+            </p>
+        </div>
+    </div>
+</div>

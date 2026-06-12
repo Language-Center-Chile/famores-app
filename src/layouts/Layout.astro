@@ -1,0 +1,109 @@
+---
+import BotonSoporte from '../components/BotonSoporte.astro';
+
+interface Props {
+	title?: string;
+}
+
+const { title = "Cotizador FAMORES" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+
+		<meta property="og:title" content="Famores - Herramientas Sistémicas" />
+		<meta
+			property="og:description"
+			content="Diseña tu set de herramientas terapéuticas sistémicas de forma personalizada."
+		/>
+		<meta property="og:image" content="URL_DE_UNA_FOTO_DE_LOS_PALITOS" />
+		<meta property="og:type" content="website" />
+
+		<script is:inline src="https://cdn.tailwindcss.com"></script>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline>
+			tailwind.config = {
+				theme: {
+					extend: {
+						fontFamily: {
+							sans: ['Inter', 'sans-serif'],
+						},
+						colors: {
+							terapia: {
+								bg: '#FDFBF7', /* Beige muy suave y cálido */
+								wood: '#8B5A2B', /* Tono madera para Famores */
+								woodLight: '#D2B48C', /* Madera clara */
+								sage: '#8FAC9A', /* Verde salvia que da tranquilidad */
+								sageDark: '#5E7A68',
+								text: '#4A4A4A' /* Gris oscuro, menos agresivo que el negro puro */
+							}
+						}
+					}
+				}
+			}
+		</script>
+	</head>
+	<body class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+		<slot />
+		<BotonSoporte />
+	</body>
+</html>
+
+<style is:global>
+	body {
+		background-color: #fdfbf7;
+		color: #4a4a4a;
+	}
+
+	/* Animación suave para todas las interacciones */
+	.smooth-transition {
+		transition: all 0.3s ease-in-out;
+	}
+
+	/* Estilo para las tarjetas seleccionables */
+	.option-card {
+		border: 2px solid #e5e7eb;
+		cursor: pointer;
+	}
+
+	.option-card:hover {
+		border-color: #d2b48c;
+		transform: translateY(-2px);
+		box-shadow:
+			0 4px 6px -1px rgba(0, 0, 0, 0.1),
+			0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	}
+
+	/* Clase que se aplica cuando el cliente selecciona una opción */
+	.option-card.selected {
+		border-color: #8fac9a;
+		background-color: #f4f8f5; /* Fondo salvia muy claro */
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	}
+
+	.selected-icon {
+		opacity: 0;
+		transform: scale(0.5);
+		transition: all 0.3s ease;
+	}
+
+	.option-card.selected .selected-icon {
+		opacity: 1;
+		transform: scale(1);
+		color: #8fac9a;
+	}
+</style>
