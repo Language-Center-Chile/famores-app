@@ -1,18 +1,43 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Hero from '../components/Hero.astro';
-import Set from '../components/Set.astro';
-import Modalidad from '../components/Modalidad.astro';
-import Datos from '../components/Datos.astro';
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import Set from "../components/Set.astro";
+import Modalidad from "../components/Modalidad.astro";
+import Datos from "../components/Datos.astro";
+import MapaLocal from "../components/MapaLocal.astro";
 ---
 
 <Layout title="Cotizador FAMORES">
-    <div class="max-w-3xl mx-auto space-y-8">
-        <Hero />
+    <Hero />
+
+    <section class="max-w-5xl mx-auto py-8 px-4 mt-4">
+        <h3 class="text-center text-gray-500 font-light italic mb-6">
+            Hechos a mano con intención y energía
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <img
+                src="/553049465_18066532814254073_584694994237409713_n.jpg"
+                alt="Materia prima"
+                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
+            />
+            <img
+                src="/623875796_18071898536148036_4883687187928227649_n.webp"
+                alt="Arte en proceso"
+                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
+            />
+            <img
+                src="/622128275_18072769019379029_4834779806685121061_n.jpg"
+                alt="Familia terminada"
+                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
+            />
+        </div>
+    </section>
+
+    <div class="max-w-3xl mx-auto space-y-8 px-4 pb-12 mt-4">
         <Set />
         <Modalidad />
-        <Datos />       
-
+        <MapaLocal />
+        <Datos />
     </div>
 
     <script is:inline>
@@ -21,7 +46,7 @@ import Datos from '../components/Datos.astro';
             set: null,
             precioBase: 0,
             envio: null,
-            costoCaja: 0
+            costoCaja: 0,
         };
 
         // Función cuando seleccionan un Set
@@ -29,100 +54,137 @@ import Datos from '../components/Datos.astro';
             state.set = tipo;
             state.precioBase = precio;
 
-            // Cambiar estilos visuales
-            document.getElementById('card-pintado').classList.remove('selected');
-            document.getElementById('card-sin-pintar').classList.remove('selected');
-            
-            if(tipo === 'pintado') {
-                document.getElementById('card-pintado').classList.add('selected');
-            } else {
-                document.getElementById('card-sin-pintar').classList.add('selected');
+            // Cambiar estilos visuales dinámicamente
+            const allCards = document.querySelectorAll(".option-card");
+            if (allCards.length > 0) {
+                allCards.forEach((card) => card.classList.remove("selected"));
+            }
+
+            // Generar ID de la card a partir del nombre
+            const cardId = "card-" + tipo.toLowerCase().replace(/ /g, "-");
+            const selectedCard = document.getElementById(cardId);
+            if (selectedCard) {
+                selectedCard.classList.add("selected");
             }
 
             // Habilitar la sección de envío
-            let seccionEnvio = document.getElementById('section-envio');
-            seccionEnvio.classList.remove('opacity-50', 'pointer-events-none');
-            
+            let seccionEnvio = document.getElementById("section-envio");
+            if (seccionEnvio)
+                seccionEnvio.classList.remove(
+                    "opacity-50",
+                    "pointer-events-none",
+                );
+
             actualizarResumen();
         }
 
         // Función cuando seleccionan Método de Envío
         function selectShipping(metodo) {
             state.envio = metodo;
-            
+
             // Si es chilexpress, sumamos la caja
-            state.costoCaja = (metodo === 'chilexpress') ? 1500 : 0;
+            state.costoCaja = metodo === "chilexpress" ? 1500 : 0;
 
             // Cambiar estilos visuales
-            document.getElementById('card-starken').classList.remove('selected');
-            document.getElementById('card-chilexpress').classList.remove('selected');
-            document.getElementById('card-retiro').classList.remove('selected');
-            
-            document.getElementById(`card-${metodo}`).classList.add('selected');
+            document
+                .getElementById("card-starken")
+                .classList.remove("selected");
+            document
+                .getElementById("card-chilexpress")
+                .classList.remove("selected");
+            document.getElementById("card-retiro").classList.remove("selected");
+
+            document.getElementById(`card-${metodo}`).classList.add("selected");
 
             // Mostrar u ocultar Región/Comuna dependiendo de si es retiro
-            const containerRC = document.getElementById('container-region-comuna');
-            if(containerRC) {
-                if (metodo === 'retiro') {
-                    containerRC.classList.add('hidden');
+            const containerRC = document.getElementById(
+                "container-region-comuna",
+            );
+            if (containerRC) {
+                if (metodo === "retiro") {
+                    containerRC.classList.add("hidden");
                 } else {
-                    containerRC.classList.remove('hidden');
+                    containerRC.classList.remove("hidden");
+                }
+            }
+
+            // Mostrar u ocultar el Mapa Local dependiendo de si es retiro
+            const containerMapa = document.getElementById("contenedor-mapa");
+            if (containerMapa) {
+                if (metodo === "retiro") {
+                    containerMapa.classList.remove("hidden");
+                } else {
+                    containerMapa.classList.add("hidden");
                 }
             }
 
             // Mostrar el formulario final
-            document.getElementById('section-datos').classList.remove('hidden');
-            
+            document.getElementById("section-datos").classList.remove("hidden");
+
             actualizarResumen();
         }
 
         // Actualizar los textos y matemáticas del resumen
         function actualizarResumen() {
-            if(!state.set || !state.envio) return;
+            if (!state.set || !state.envio) return;
 
-            const nombreSet = state.set === 'pintado' ? 'Set Pintado (14 figuras)' : 'Set Sin Pintar (14 figuras)';
-            document.getElementById('resumen-producto').innerText = nombreSet;
-            document.getElementById('resumen-precio').innerText = `$${state.precioBase.toLocaleString('es-CL')}`;
+            document.getElementById("resumen-producto").innerText = state.set;
+            document.getElementById("resumen-precio").innerText =
+                `$${state.precioBase.toLocaleString("es-CL")}`;
 
-            const rowCaja = document.getElementById('resumen-caja-row');
-            const notaEnvio = document.getElementById('resumen-nota-envio');
+            const rowCaja = document.getElementById("resumen-caja-row");
+            const notaEnvio = document.getElementById("resumen-nota-envio");
 
-            if(state.envio === 'chilexpress') {
-                rowCaja.classList.remove('hidden');
-                notaEnvio.innerText = "* Nota: Katherine despachará y luego te enviará el comprobante de Chilexpress para que le transfieras el valor exacto del envío.";
-            } else if(state.envio === 'starken') {
-                rowCaja.classList.add('hidden');
-                notaEnvio.innerText = "* Nota: Pagarás el envío directamente a Starken cuando recibas tu paquete.";
+            if (state.envio === "chilexpress") {
+                rowCaja.classList.remove("hidden");
+                notaEnvio.innerText =
+                    "* Nota: Katherine despachará y luego te enviará el comprobante de Chilexpress para que le transfieras el valor exacto del envío.";
+            } else if (state.envio === "starken") {
+                rowCaja.classList.add("hidden");
+                notaEnvio.innerText =
+                    "* Nota: Pagarás el envío directamente a Starken cuando recibas tu paquete.";
             } else {
-                rowCaja.classList.add('hidden');
-                notaEnvio.innerText = "* Nota: Katherine se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
+                rowCaja.classList.add("hidden");
+                notaEnvio.innerText =
+                    "* Nota: Katherine se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
             }
 
             const total = state.precioBase + state.costoCaja;
-            document.getElementById('resumen-total').innerText = `$${total.toLocaleString('es-CL')}`;
+            document.getElementById("resumen-total").innerText =
+                `$${total.toLocaleString("es-CL")}`;
         }
 
-       // Función que genera el mensaje, envía datos a Python y abre WhatsApp
+        // Función que genera el mensaje, envía datos a Python y abre WhatsApp
         function generarWhatsApp() {
-            const btn = document.querySelector('button[onclick="generarWhatsApp()"]');
+            const btn =
+                document.getElementById("btn-submit-main") ||
+                document.querySelector('button[onclick="generarWhatsApp()"]');
             const originalText = btn.innerHTML;
 
-            const nombre = document.getElementById('input-nombre').value.trim();
-            const apellido = document.getElementById('input-apellido').value.trim();
-            const rut = document.getElementById('input-rut').value.trim();
-            const correo = document.getElementById('input-correo').value.trim();
-            const telefono = document.getElementById('input-telefono').value.trim();
-            const comuna = document.getElementById('input-comuna').value.trim();
-            const region = document.getElementById('select-region').value.trim();
-            const direccion = document.getElementById('input-direccion').value.trim();
-            const metodo_pago = document.getElementById('select-pago').value;
+            const nombre = document.getElementById("input-nombre").value.trim();
+            const apellido = document
+                .getElementById("input-apellido")
+                .value.trim();
+            const rut = document.getElementById("input-rut").value.trim();
+            const correo = document.getElementById("input-correo").value.trim();
+            const telefono = document
+                .getElementById("input-telefono")
+                .value.trim();
+            const comuna = document.getElementById("input-comuna").value.trim();
+            const region = document
+                .getElementById("select-region")
+                .value.trim();
+            const direccion = document
+                .getElementById("input-direccion")
+                .value.trim();
+            const metodo_pago = document.getElementById("select-pago").value;
 
-            if(!nombre || !apellido || !rut || !correo || !telefono) {
+            if (!nombre || !apellido || !rut || !correo || !telefono) {
                 btn.innerHTML = "⚠️ ¡Faltan tus datos!";
-                btn.classList.add('bg-red-500');
+                btn.classList.add("bg-red-500");
                 setTimeout(() => {
                     btn.innerHTML = originalText;
-                    btn.classList.remove('bg-red-500');
+                    btn.classList.remove("bg-red-500");
                 }, 2000);
                 return;
             }
@@ -131,78 +193,214 @@ import Datos from '../components/Datos.astro';
             btn.disabled = true;
             btn.innerHTML = "⏳ Procesando pedido...";
 
-            const tipoSetStr = state.set === 'pintado' ? 'Pintado' : 'Sin Pintar';
+            const tipoSetStr = state.set;
             const total = state.precioBase + state.costoCaja;
-            
+
             let envioStr = "";
-            if(state.envio === 'starken') envioStr = "starken";
-            else if(state.envio === 'chilexpress') envioStr = "chilexpress";
+            if (state.envio === "starken") envioStr = "starken";
+            else if (state.envio === "chilexpress") envioStr = "chilexpress";
             else envioStr = "retiro";
 
             // =========================================
             // 🚀 EL NUEVO PUENTE HACIA GOOGLE SHEETS
             // =========================================
             const formData = new FormData();
-            formData.append('nombre', nombre);
-            formData.append('apellido', apellido);
-            formData.append('rut', rut);
-            formData.append('correo', correo);
-            formData.append('telefono', telefono);
-            formData.append('region', region);
-            formData.append('comuna', comuna);
-            formData.append('direccion', direccion);
-            formData.append('metodo_pago', metodo_pago);
-            formData.append('tipo_set', state.set);
-            formData.append('metodo_envio', envioStr);
+            formData.append("nombre", nombre);
+            formData.append("apellido", apellido);
+            formData.append("rut", rut);
+            formData.append("correo", correo);
+            formData.append("telefono", telefono);
+            formData.append("region", region);
+            formData.append("comuna", comuna);
+            formData.append("direccion", direccion);
+            formData.append("metodo_pago", metodo_pago);
+            formData.append("tipo_set", state.set);
+            formData.append("metodo_envio", envioStr);
 
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbwz5uFrlCdFM6gTntEIo0Rvry_LSKFzyb1d_EVm8VuKU1QGxcmBGx9MqhZhk15edKmvLA/exec';
+            const scriptURL =
+                "https://script.google.com/macros/s/AKfycbwfot7dNP3mb2nGjSeNJ0iR616MaNGnNvO0EbtKube_xnqggzCPAcEPRtzzkJaHGi6H/exec";
 
-            fetch(scriptURL, { 
-                method: 'POST', 
+            fetch(scriptURL, {
+                method: "POST",
                 body: formData,
-                mode: 'no-cors' // Evita bloqueos de seguridad del navegador
-            }).then(() => {
-                console.log("✅ Datos guardados en Excel y enviados al correo.");
-                // Pantalla de Éxito
-                btn.classList.remove('bg-[#25D366]', 'hover:bg-[#1DA851]');
-                btn.classList.add('bg-green-800', 'hover:bg-green-900');
-                btn.innerHTML = "✅ ¡Pedido registrado con éxito! Tu orden está en proceso";
-                
-                setTimeout(() => {
-                    continuarWhatsApp();
-                }, 1500); // Redirigir a WhatsApp después de 1.5s
-            }).catch(error => {
-                console.error("❌ Error conectando con Google:", error);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-                continuarWhatsApp();
-            });
+                mode: "no-cors", // Evita bloqueos de seguridad del navegador
+            })
+                .then(() => {
+                    console.log(
+                        "✅ Datos guardados en Excel y enviados al correo.",
+                    );
+                    // Pantalla de Éxito
+                    btn.classList.remove(
+                        "bg-terapia-sage",
+                        "hover:bg-terapia-sageDark",
+                    );
+                    btn.classList.add("bg-green-800", "hover:bg-green-900");
+                    btn.innerHTML =
+                        "✅ ¡Pedido registrado con éxito! Tu orden está en proceso";
+
+                    setTimeout(() => {
+                        // Ocultar formulario
+                        const formContent =
+                            document.getElementById("datos-form-content");
+                        if (formContent) formContent.classList.add("hidden");
+
+                        // Mostrar pantalla pago
+                        const pantallaPago =
+                            document.getElementById("pantalla-pago");
+                        if (pantallaPago)
+                            pantallaPago.classList.remove("hidden");
+
+                        const whatsappUrl = obtenerUrlWhatsApp();
+
+                        const flowLinks = {
+                            "Set Pintado":
+                                "https://www.flow.cl/btn.php?token=1uikdzp",
+                            "Set Sin Pintar":
+                                "https://www.flow.cl/btn.php?token=hqqv39f",
+                            "Set Personalizado":
+                                "https://www.flow.cl/btn.php?token=kvyqkd4",
+                            "Mascota Pintada":
+                                "https://www.flow.cl/btn.php?token=eqculpj",
+                            "Mascota sin Pintar":
+                                "https://www.flow.cl/btn.php?token=spt8moh",
+                        };
+
+                        if (
+                            metodo_pago === "Link de Pago (Flow)" &&
+                            flowLinks[state.set]
+                        ) {
+                            const bloqueFlow =
+                                document.getElementById("bloque-flow");
+                            if (bloqueFlow)
+                                bloqueFlow.classList.remove("hidden");
+                            currentFlowUrl = flowLinks[state.set]; // Guardar globalmente
+                            document.getElementById("btn-whatsapp-flow").href =
+                                whatsappUrl;
+                        } else {
+                            const bloqueTransferencia = document.getElementById(
+                                "bloque-transferencia",
+                            );
+                            if (bloqueTransferencia)
+                                bloqueTransferencia.classList.remove("hidden");
+                            document.getElementById(
+                                "btn-whatsapp-transferencia",
+                            ).href = whatsappUrl;
+                        }
+                    }, 1500); // Transición suave después de 1.5s
+                })
+                .catch((error) => {
+                    console.error("❌ Error conectando con Google:", error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    // Fallback: Si falla el sheets, al menos abre el whatsapp para no perder el cliente
+                    window.open(obtenerUrlWhatsApp(), "_blank");
+                });
             // =========================================
 
-            function continuarWhatsApp() {
+            function obtenerUrlWhatsApp() {
                 // Construir el mensaje de WhatsApp para Katherine
                 let envioVisual = "";
-                if(state.envio === 'starken') envioVisual = "Starken (Envío por pagar)";
-                else if(state.envio === 'chilexpress') envioVisual = "Chilexpress";
+                if (state.envio === "starken")
+                    envioVisual = "Starken (Envío por pagar)";
+                else if (state.envio === "chilexpress")
+                    envioVisual = "Chilexpress";
                 else envioVisual = "Retiro Presencial (Metro Grecia)";
 
                 let datosUbicacion = "";
-                if (state.envio !== 'retiro') {
-                    datosUbicacion = `\n📍 Región: ${region || 'Pendiente'}\n📍 Comuna: ${comuna || 'Pendiente'}\n📍 Dirección: ${direccion || 'Pendiente'}`;
+                if (state.envio !== "retiro") {
+                    datosUbicacion = `\n📍 Región: ${region || "Pendiente"}\n📍 Comuna: ${comuna || "Pendiente"}\n📍 Dirección: ${direccion || "Pendiente"}`;
                 }
 
-                const mensaje = `¡Hola Katherine! 👋 vengo desde la página web.\n\nQuiero encargar mis Famores:\n\n*Pedido:* Set ${tipoSetStr}\n*Total a transferir hoy:* $${total.toLocaleString('es-CL')}\n*Envío preferido:* ${envioVisual}\n*Método de Pago:* ${metodo_pago}\n\n*Mis Datos:*\n👤 Nombre: ${nombre} ${apellido}\n🆔 Rut: ${rut}\n📧 Correo: ${correo}\n📱 Teléfono: ${telefono}${datosUbicacion}\n\nQuedo atenta a tus datos de transferencia para confirmar. ✨`;
+                let saludoInicial =
+                    "¡Hola Katherine! 👋 Vengo desde la página web.";
+                if (metodo_pago === "Transferencia Bancaria") {
+                    saludoInicial =
+                        "¡Hola Katherine! 👋 Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia. 🧾";
+                } else if (metodo_pago === "Link de Pago (Flow)") {
+                    saludoInicial =
+                        "¡Hola Katherine! 👋 Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante. 💳";
+                }
+
+                const mensaje = `${saludoInicial}\n\nQuiero encargar mis Famores:\n\n*Pedido:* Set ${tipoSetStr}\n*Total a transferir hoy:* $${total.toLocaleString("es-CL")}\n*Envío preferido:* ${envioVisual}\n*Método de Pago:* ${metodo_pago}\n\n*Mis Datos:*\n👤 Nombre: ${nombre} ${apellido}\n🆔 Rut: ${rut}\n📧 Correo: ${correo}\n📱 Teléfono: ${telefono}${datosUbicacion}\n\n¡Espero mis Famores! ✨`;
 
                 const mensajeCodificado = encodeURIComponent(mensaje);
-                
+
                 // 🔥 MI NÚMERO DE PRUEBAS
-                const numeroKatherine = "56958083908"; // Reemplazaré esto manualmente por mi celular real
-                
-                const urlWhatsApp = `https://wa.me/${numeroKatherine}?text=${mensajeCodificado}`;
-                
-                // Redirigir al cliente a WhatsApp
-                window.open(urlWhatsApp, '_blank');
+                const numeroKatherine = "56962052499"; // Reemplazaré esto manualmente por mi celular real
+
+                return `https://wa.me/${numeroKatherine}?text=${mensajeCodificado}`;
             }
         }
+
+        // Variables y Funciones para Checkout UX
+        let currentFlowUrl = "";
+
+        function volverAFormulario() {
+            document.getElementById("pantalla-pago").classList.add("hidden");
+            document
+                .getElementById("datos-form-content")
+                .classList.remove("hidden");
+
+            // Restablecer el botón principal
+            const btn =
+                document.getElementById("btn-submit-main") ||
+                document.querySelector('button[onclick="generarWhatsApp()"]');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `Confirmar Pedido y Continuar al Pago <i class="fa-solid fa-arrow-right ml-2"></i>`;
+                btn.classList.remove("bg-green-800", "hover:bg-green-900");
+                btn.classList.add(
+                    "bg-terapia-sage",
+                    "hover:bg-terapia-sageDark",
+                );
+            }
+
+            // Ocultar bloques de pago
+            document.getElementById("bloque-flow").classList.add("hidden");
+            document
+                .getElementById("bloque-transferencia")
+                .classList.add("hidden");
+
+            // Resetear estados de botones internos
+            document.getElementById("btn-pago-flow").classList.remove("hidden");
+            document
+                .getElementById("btn-whatsapp-flow")
+                .classList.add("hidden");
+        }
+
+        function iniciarPagoFlow() {
+            if (currentFlowUrl) {
+                window.open(currentFlowUrl, "_blank");
+            }
+            document.getElementById("btn-pago-flow").classList.add("hidden");
+            document
+                .getElementById("btn-whatsapp-flow")
+                .classList.remove("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnCopiar = document.getElementById("btn-copiar-datos");
+            if (btnCopiar) {
+                btnCopiar.addEventListener("click", () => {
+                    const textoCopiar = `Nombre: Katherine Stehberg\nRUT: 13687247-8\nBanco: Santander\nTipo: Cuenta Corriente\nN° Cuenta: 68370043\nEmail: famoresporelmundo@gmail.com`;
+
+                    navigator.clipboard
+                        .writeText(textoCopiar)
+                        .then(() => {
+                            const originalHtml = btnCopiar.innerHTML;
+                            btnCopiar.innerHTML = "✅ ¡Datos copiados!";
+                            setTimeout(() => {
+                                btnCopiar.innerHTML = originalHtml;
+                            }, 2000);
+                        })
+                        .catch((err) => {
+                            console.error(
+                                "Error al copiar al portapapeles: ",
+                                err,
+                            );
+                        });
+                });
+            }
+        });
     </script>
 </Layout>

@@ -1,5 +1,6 @@
 ---
 import BotonSoporte from '../components/BotonSoporte.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
 	title?: string;
@@ -60,6 +61,7 @@ const { title = "Cotizador FAMORES" } = Astro.props;
 	<body class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
 		<slot />
 		<BotonSoporte />
+		<Footer />
 	</body>
 </html>
 

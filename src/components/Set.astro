@@ -6,11 +6,11 @@
         > ¿Qué set deseas llevar?
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
             class="option-card smooth-transition rounded-xl p-5 relative"
-            id="card-pintado"
-            onclick="selectSet('pintado', 39990)"
+            id="card-set-pintado"
+            onclick="selectSet('Set Pintado', 39990)"
         >
             <div class="absolute top-4 right-4 selected-icon">
                 <i class="fa-solid fa-circle-check text-xl"></i>
@@ -29,8 +29,8 @@
 
         <div
             class="option-card smooth-transition rounded-xl p-5 relative"
-            id="card-sin-pintar"
-            onclick="selectSet('sin_pintar', 25000)"
+            id="card-set-sin-pintar"
+            onclick="selectSet('Set Sin Pintar', 25000)"
         >
             <div class="absolute top-4 right-4 selected-icon">
                 <i class="fa-solid fa-circle-check text-xl"></i>
@@ -42,7 +42,68 @@
             <p class="text-2xl font-bold text-terapia-sageDark mb-2">$25.000</p>
             <p class="text-sm text-gray-500">
                 Incluye 14 figuras en madera natural. Ideal para personalizar y
-                pintar con tu propia energía.
+                pintar con tu energía.
+            </p>
+        </div>
+
+        <div
+            class="option-card smooth-transition rounded-xl p-5 relative"
+            id="card-set-personalizado"
+            onclick="selectSet('Set Personalizado', 45000)"
+        >
+            <div class="absolute top-4 right-4 selected-icon">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i
+                    class="fa-solid fa-wand-magic-sparkles text-2xl text-terapia-woodLight"
+                ></i>
+                <h4 class="font-semibold text-lg leading-tight">
+                    Set Personalizado
+                </h4>
+            </div>
+            <p class="text-2xl font-bold text-terapia-sageDark mb-2">$45.000</p>
+            <p class="text-sm text-gray-500">
+                14 figuras personalizadas con características únicas (color de
+                pelo, ropa, etc).
+            </p>
+        </div>
+
+        <div
+            class="option-card smooth-transition rounded-xl p-5 relative"
+            id="card-mascota-pintada"
+            onclick="selectSet('Mascota Pintada', 4500)"
+        >
+            <div class="absolute top-4 right-4 selected-icon">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fa-solid fa-paw text-2xl text-terapia-woodLight"></i>
+                <h4 class="font-semibold text-lg">Mascota Pintada</h4>
+            </div>
+            <p class="text-2xl font-bold text-terapia-sageDark mb-2">$4.500</p>
+            <p class="text-sm text-gray-500">
+                Mascota de madera pintada. Valor por cada unidad.
+            </p>
+        </div>
+
+        <div
+            class="option-card smooth-transition rounded-xl p-5 relative"
+            id="card-mascota-sin-pintar"
+            onclick="selectSet('Mascota sin Pintar', 2500)"
+        >
+            <div class="absolute top-4 right-4 selected-icon">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fa-solid fa-dog text-2xl text-terapia-woodLight"></i>
+                <h4 class="font-semibold text-lg leading-tight">
+                    Mascota sin Pintar
+                </h4>
+            </div>
+            <p class="text-2xl font-bold text-terapia-sageDark mb-2">$2.500</p>
+            <p class="text-sm text-gray-500">
+                Mascota de madera natural sin pintar. Valor por unidad.
             </p>
         </div>
     </div>

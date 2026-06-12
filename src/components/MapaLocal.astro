@@ -1,0 +1,27 @@
+---
+// MapaLocal.astro
+---
+
+<div
+    id="contenedor-mapa"
+    class="hidden smooth-transition bg-white rounded-2xl p-6 shadow-sm border border-stone-100"
+>
+    <h3 class="text-lg font-semibold mb-4 text-terapia-text">
+        <i class="fa-solid fa-location-dot text-terapia-sage mr-2"></i>
+        Punto de Retiro Presencial
+    </h3>
+    <div class="w-full rounded-xl overflow-hidden">
+        <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3328.790518776366!2d-70.5510006240212!3d-33.45474649774619!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662ce53d3c8c7f7%3A0x184285cb8cfabf4!2sAv.%20Ega%C3%B1a%201638%2C%20Pe%C3%B1alol%C3%A9n%2C%20Regi%C3%B3n%20Metropolitana!5e0!3m2!1ses-419!2scl!4v1700000000000!5m2!1ses-419!2scl"
+            class="w-full h-64 md:h-80 border-0"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+        >
+        </iframe>
+    </div>
+    <p class="text-sm text-gray-500 mt-3">
+        <i class="fa-solid fa-map-pin mr-2 text-terapia-sage"></i> Avenida Egaña 1638
+        B, Peñalolén, Santiago, Chile
+    </p>
+</div>
