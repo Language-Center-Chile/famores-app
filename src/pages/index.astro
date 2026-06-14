@@ -138,7 +138,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             if (state.envio === "chilexpress") {
                 rowCaja.classList.remove("hidden");
                 notaEnvio.innerText =
-                    "* Nota: Katherine despachará y luego te enviará el comprobante de Chilexpress para que le transfieras el valor exacto del envío.";
+                    "* Nota: Famores despachará y luego te enviará el comprobante de Chilexpress para que le transfieras el valor exacto del envío.";
             } else if (state.envio === "starken") {
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
@@ -146,7 +146,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             } else {
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
-                    "* Nota: Katherine se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
+                    "* Nota: Famores se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
             }
 
             const total = state.precioBase + state.costoCaja;
@@ -265,7 +265,11 @@ import MapaLocal from "../components/MapaLocal.astro";
                                 "https://www.flow.cl/btn.php?token=spt8moh",
                         };
 
-                        if (
+                        if (state.envio === "chilexpress") {
+                            const bloqueChilexpress = document.getElementById("bloque-chilexpress");
+                            if (bloqueChilexpress) bloqueChilexpress.classList.remove("hidden");
+                            document.getElementById("btn-whatsapp-chilexpress").href = whatsappUrl;
+                        } else if (
                             metodo_pago === "Link de Pago (Flow)" &&
                             flowLinks[state.set]
                         ) {
@@ -298,7 +302,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             // =========================================
 
             function obtenerUrlWhatsApp() {
-                // Construir el mensaje de WhatsApp para Katherine
+                // Construir el mensaje de WhatsApp para Famores
                 let envioVisual = "";
                 if (state.envio === "starken")
                     envioVisual = "Starken (Envío por pagar)";
@@ -312,13 +316,13 @@ import MapaLocal from "../components/MapaLocal.astro";
                 }
 
                 let saludoInicial =
-                    "¡Hola Katherine! 👋 Vengo desde la página web.";
+                    "¡Hola Famores! 👋 Vengo desde la página web.";
                 if (metodo_pago === "Transferencia Bancaria") {
                     saludoInicial =
-                        "¡Hola Katherine! 👋 Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia. 🧾";
+                        "¡Hola Famores! 👋 Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia. 🧾";
                 } else if (metodo_pago === "Link de Pago (Flow)") {
                     saludoInicial =
-                        "¡Hola Katherine! 👋 Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante. 💳";
+                        "¡Hola Famores! 👋 Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante. 💳";
                 }
 
                 const mensaje = `${saludoInicial}\n\nQuiero encargar mis Famores:\n\n*Pedido:* Set ${tipoSetStr}\n*Total a transferir hoy:* $${total.toLocaleString("es-CL")}\n*Envío preferido:* ${envioVisual}\n*Método de Pago:* ${metodo_pago}\n\n*Mis Datos:*\n👤 Nombre: ${nombre} ${apellido}\n🆔 Rut: ${rut}\n📧 Correo: ${correo}\n📱 Teléfono: ${telefono}${datosUbicacion}\n\n¡Espero mis Famores! ✨`;
@@ -326,9 +330,9 @@ import MapaLocal from "../components/MapaLocal.astro";
                 const mensajeCodificado = encodeURIComponent(mensaje);
 
                 // 🔥 MI NÚMERO DE PRUEBAS
-                const numeroKatherine = "56962052499"; // Reemplazaré esto manualmente por mi celular real
+                const numeroFamores = "56962052499"; // Reemplazaré esto manualmente por mi celular real
 
-                return `https://wa.me/${numeroKatherine}?text=${mensajeCodificado}`;
+                return `https://wa.me/${numeroFamores}?text=${mensajeCodificado}`;
             }
         }
 
@@ -360,6 +364,8 @@ import MapaLocal from "../components/MapaLocal.astro";
             document
                 .getElementById("bloque-transferencia")
                 .classList.add("hidden");
+            const bloqueChilexpress = document.getElementById("bloque-chilexpress");
+            if (bloqueChilexpress) bloqueChilexpress.classList.add("hidden");
 
             // Resetear estados de botones internos
             document.getElementById("btn-pago-flow").classList.remove("hidden");
@@ -382,7 +388,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             const btnCopiar = document.getElementById("btn-copiar-datos");
             if (btnCopiar) {
                 btnCopiar.addEventListener("click", () => {
-                    const textoCopiar = `Nombre: Katherine Stehberg\nRUT: 13687247-8\nBanco: Santander\nTipo: Cuenta Corriente\nN° Cuenta: 68370043\nEmail: famoresporelmundo@gmail.com`;
+                    const textoCopiar = `Nombre: Famores\nRUT: 13687247-8\nBanco: Santander\nTipo: Cuenta Corriente\nN° Cuenta: 68370043\nEmail: famoresporelmundo@gmail.com`;
 
                     navigator.clipboard
                         .writeText(textoCopiar)

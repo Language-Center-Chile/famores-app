@@ -5,7 +5,7 @@ import path from 'node:path';
 export const prerender = false;
 
 // ==========================================
-// 1. CONFIGURACIÓN DE DATOS MAESTROS ( Katherine's Data )
+// 1. CONFIGURACIÓN DE DATOS MAESTROS ( Famores' Data )
 // ==========================================
 const PRECIOS = {
     "pintado": 39990,
@@ -14,7 +14,7 @@ const PRECIOS = {
 
 const COSTO_CAJA = 1500;
 
-const DATOS_BANCO = `Nombre: Katherine Stehberg
+const DATOS_BANCO = `Nombre: Famores
 Rut: 13.687.247-8
 Banco: Santander
 Tipo: Cuenta Corriente
