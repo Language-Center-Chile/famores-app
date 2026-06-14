@@ -266,9 +266,13 @@ import MapaLocal from "../components/MapaLocal.astro";
                         };
 
                         if (state.envio === "chilexpress") {
-                            const bloqueChilexpress = document.getElementById("bloque-chilexpress");
-                            if (bloqueChilexpress) bloqueChilexpress.classList.remove("hidden");
-                            document.getElementById("btn-whatsapp-chilexpress").href = whatsappUrl;
+                            const bloqueChilexpress =
+                                document.getElementById("bloque-chilexpress");
+                            if (bloqueChilexpress)
+                                bloqueChilexpress.classList.remove("hidden");
+                            document.getElementById(
+                                "btn-whatsapp-chilexpress",
+                            ).href = whatsappUrl;
                         } else if (
                             metodo_pago === "Link de Pago (Flow)" &&
                             flowLinks[state.set]
@@ -312,20 +316,36 @@ import MapaLocal from "../components/MapaLocal.astro";
 
                 let datosUbicacion = "";
                 if (state.envio !== "retiro") {
-                    datosUbicacion = `\n📍 Región: ${region || "Pendiente"}\n📍 Comuna: ${comuna || "Pendiente"}\n📍 Dirección: ${direccion || "Pendiente"}`;
+                    datosUbicacion = `\n- Región: ${region || "Pendiente"}\n- Comuna: ${comuna || "Pendiente"}\n- Dirección: ${direccion || "Pendiente"}`;
                 }
 
-                let saludoInicial =
-                    "¡Hola Famores! 👋 Vengo desde la página web.";
-                if (metodo_pago === "Transferencia Bancaria") {
+                let saludoInicial = "";
+                if (state.envio === "chilexpress") {
+                    saludoInicial = "¡Hola Famores! Vengo de la página web. Quedo a la espera de la cotización de envío por Chilexpress para poder realizar el pago total de mi pedido.";
+                } else if (metodo_pago === "Transferencia Bancaria") {
                     saludoInicial =
-                        "¡Hola Famores! 👋 Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia. 🧾";
-                } else if (metodo_pago === "Link de Pago (Flow)") {
+                        "¡Hola Famores! Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia.";
+                } else {
                     saludoInicial =
-                        "¡Hola Famores! 👋 Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante. 💳";
+                        "¡Hola Famores! Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante.";
                 }
 
-                const mensaje = `${saludoInicial}\n\nQuiero encargar mis Famores:\n\n*Pedido:* Set ${tipoSetStr}\n*Total a transferir hoy:* $${total.toLocaleString("es-CL")}\n*Envío preferido:* ${envioVisual}\n*Método de Pago:* ${metodo_pago}\n\n*Mis Datos:*\n👤 Nombre: ${nombre} ${apellido}\n🆔 Rut: ${rut}\n📧 Correo: ${correo}\n📱 Teléfono: ${telefono}${datosUbicacion}\n\n¡Espero mis Famores! ✨`;
+                const mensaje = `${saludoInicial}
+
+Quiero encargar mis Famores:
+
+- *Pedido:* Set ${tipoSetStr}
+- *Total a transferir hoy:* $${total.toLocaleString("es-CL")}
+- *Envío preferido:* ${envioVisual}
+- *Método de Pago:* ${metodo_pago}
+
+*Mis Datos:*
+- Nombre: ${nombre} ${apellido}
+- Rut: ${rut}
+- Correo: ${correo}
+- Teléfono: ${telefono}${datosUbicacion}
+
+¡Espero mis Famores!`;
 
                 const mensajeCodificado = encodeURIComponent(mensaje);
 
@@ -364,7 +384,8 @@ import MapaLocal from "../components/MapaLocal.astro";
             document
                 .getElementById("bloque-transferencia")
                 .classList.add("hidden");
-            const bloqueChilexpress = document.getElementById("bloque-chilexpress");
+            const bloqueChilexpress =
+                document.getElementById("bloque-chilexpress");
             if (bloqueChilexpress) bloqueChilexpress.classList.add("hidden");
 
             // Resetear estados de botones internos
