@@ -306,6 +306,9 @@ import MapaLocal from "../components/MapaLocal.astro";
             // =========================================
 
             function obtenerUrlWhatsApp() {
+                // Captura el valor del radio button seleccionado:
+                const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.nextElementSibling.innerText || "No especificado";
+
                 // Construir el mensaje de WhatsApp para Famores
                 let envioVisual = "";
                 if (state.envio === "starken")
@@ -330,6 +333,11 @@ import MapaLocal from "../components/MapaLocal.astro";
                         "¡Hola Famores! Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante.";
                 }
 
+                let notaFinal = "";
+                if (state.envio === "starken" || state.envio === "chilexpress") {
+                    notaFinal = `\n\n*Nota:* Recuerda que el costo del envío es "Por Pagar" al momento de recibir o retirar tu paquete en la sucursal.`;
+                }
+
                 const mensaje = `${saludoInicial}
 
 Quiero encargar mis Famores:
@@ -344,8 +352,9 @@ Quiero encargar mis Famores:
 - Rut: ${rut}
 - Correo: ${correo}
 - Teléfono: ${telefono}${datosUbicacion}
+• Modalidad de Entrega: ${tipoEntrega}
 
-¡Espero mis Famores!`;
+¡Espero mis Famores!${notaFinal}`;
 
                 const mensajeCodificado = encodeURIComponent(mensaje);
 
