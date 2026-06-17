@@ -43,7 +43,37 @@
                     </div>
                 </div>
 
-                <div class="mb-4" id="container-direccion">
+                <div id="opciones-courier" class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">¿Dónde prefieres recibir tu pedido?</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label class="flex items-center w-full rounded-lg border-gray-300 border p-3 focus-within:ring-1 focus-within:ring-terapia-sage focus-within:border-terapia-sage smooth-transition cursor-pointer bg-white">
+                            <input type="radio" name="tipo_entrega" value="domicilio" required class="w-4 h-4 text-terapia-sage focus:ring-terapia-sage focus:ring-1 border-gray-300">
+                            <span class="ml-3 text-sm text-gray-700">A Domicilio / Oficina</span>
+                        </label>
+                        
+                        <label class="flex items-center w-full rounded-lg border-gray-300 border p-3 focus-within:ring-1 focus-within:ring-terapia-sage focus-within:border-terapia-sage smooth-transition cursor-pointer bg-white">
+                            <input type="radio" name="tipo_entrega" value="sucursal" required class="w-4 h-4 text-terapia-sage focus:ring-terapia-sage focus:ring-1 border-gray-300">
+                            <span class="ml-3 text-sm text-gray-700">En Sucursal del Courier</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="opciones-retiro" class="mb-4 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">¿Dónde desea retirarlo?</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label class="flex items-center w-full rounded-lg border-gray-300 border p-3 focus-within:ring-1 focus-within:ring-terapia-sage focus-within:border-terapia-sage smooth-transition cursor-pointer bg-white">
+                            <input type="radio" name="tipo_entrega" value="encuentro" class="w-4 h-4 text-terapia-sage focus:ring-terapia-sage focus:ring-1 border-gray-300">
+                            <span class="ml-3 text-sm text-gray-700">Coordinar punto de encuentro</span>
+                        </label>
+                        
+                        <label class="flex items-center w-full rounded-lg border-gray-300 border p-3 focus-within:ring-1 focus-within:ring-terapia-sage focus-within:border-terapia-sage smooth-transition cursor-pointer bg-white">
+                            <input type="radio" name="tipo_entrega" value="tienda" class="w-4 h-4 text-terapia-sage focus:ring-terapia-sage focus:ring-1 border-gray-300">
+                            <span class="ml-3 text-sm text-gray-700">Retiro en tienda</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4" id="bloque-direccion">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Dirección Exacta</label>
                     <input type="text" id="input-direccion" placeholder="Ej: Av. Providencia 1234, Depto 12" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
                 </div>
@@ -127,6 +157,11 @@
                             Pagar con Webpay / Flow
                         </button>
                         
+                        <p class="text-xs text-gray-500 mt-3 text-center flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            Tus pagos y boletas son procesados de forma segura en alianza con <strong>Almacén de Chile Shop</strong>.
+                        </p>
+                        
                         <a id="btn-whatsapp-flow" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-2">
                             <i class="fa-brands fa-whatsapp text-2xl"></i>
                             ✅ Listo, espero mi pedido
@@ -187,4 +222,47 @@
             selectComuna.disabled = true;
         }
     }
+
+    // --- Lógica Dinámica de Checkout (Método de Envío) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // En tu proyecto usas divs interactivos (cards) que llaman a selectShipping()
+        // en lugar de un <select>. Así que adaptamos tu script para que intercepte esa función:
+        const opcionesCourier = document.getElementById('opciones-courier');
+        const opcionesRetiro = document.getElementById('opciones-retiro');
+        const bloqueDireccion = document.getElementById('bloque-direccion');
+        const inputDireccion = document.getElementById('input-direccion');
+
+        const radiosCourier = opcionesCourier ? opcionesCourier.querySelectorAll('input[type="radio"]') : [];
+        const radiosRetiro = opcionesRetiro ? opcionesRetiro.querySelectorAll('input[type="radio"]') : [];
+
+        if (typeof window.selectShipping === 'function') {
+            const selectShippingOriginal = window.selectShipping;
+            
+            window.selectShipping = function(metodo) {
+                // Primero, ejecutamos el código original de tus cards
+                selectShippingOriginal(metodo);
+
+                // Luego, aplicamos tu lógica exacta
+                const metodoSeleccionado = metodo.toLowerCase();
+
+                if (metodoSeleccionado.includes('retiro')) {
+                    if (opcionesCourier) opcionesCourier.classList.add('hidden');
+                    if (bloqueDireccion) bloqueDireccion.classList.add('hidden');
+                    if (opcionesRetiro) opcionesRetiro.classList.remove('hidden');
+
+                    if (inputDireccion) inputDireccion.removeAttribute('required');
+                    radiosCourier.forEach(radio => radio.removeAttribute('required'));
+                    radiosRetiro.forEach(radio => radio.setAttribute('required', 'true'));
+                } else {
+                    if (opcionesCourier) opcionesCourier.classList.remove('hidden');
+                    if (bloqueDireccion) bloqueDireccion.classList.remove('hidden');
+                    if (opcionesRetiro) opcionesRetiro.classList.add('hidden');
+
+                    if (inputDireccion) inputDireccion.setAttribute('required', 'true');
+                    radiosCourier.forEach(radio => radio.setAttribute('required', 'true'));
+                    radiosRetiro.forEach(radio => radio.removeAttribute('required'));
+                }
+            };
+        }
+    });
 </script>
