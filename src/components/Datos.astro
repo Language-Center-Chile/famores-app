@@ -103,6 +103,8 @@
                     <p id="resumen-nota-envio" class="text-xs text-gray-500 mt-2 italic"></p>
                 </div>
 
+                <p id="form-error-message" class="hidden text-red-600 text-sm font-medium mb-3 text-center" role="alert"></p>
+
                 <button onclick="generarWhatsApp()" id="btn-submit-main" class="w-full bg-terapia-sage hover:bg-terapia-sageDark text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg">
                     Confirmar Pedido y Continuar al Pago
                     <i class="fa-solid fa-arrow-right ml-2"></i>
@@ -141,7 +143,7 @@
                     </div>
 
                     <div id="bloque-chilexpress" class="hidden flex-col items-center text-center space-y-4">
-                        <p class="text-gray-700">El pago se realizará una vez que Famores envíe tu pedido y te confirme el valor exacto del despacho. Así podrás realizar un solo pago total.</p>
+                        <p class="text-gray-700">Famores cotizará el despacho por Chilexpress y te confirmará el total antes de solicitar el pago. Así podrás realizar un solo pago total.</p>
                         
                         <a id="btn-whatsapp-chilexpress" href="#" target="_blank" rel="noopener noreferrer" class="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-4">
                             <i class="fa-brands fa-whatsapp text-2xl"></i>
@@ -150,7 +152,7 @@
                     </div>
 
                     <div id="bloque-flow" class="hidden flex-col items-center text-center space-y-5">
-                        <p class="text-gray-700">Tu pedido ha sido registrado con éxito. Procede con tu pago 100% seguro.</p>
+                        <p class="text-gray-700">Estamos enviando los datos de tu pedido. La confirmación final se realizará por WhatsApp. Procede con tu pago 100% seguro.</p>
                         
                         <button id="btn-pago-flow" onclick="iniciarPagoFlow()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg">
                             <i class="fa-solid fa-credit-card text-2xl"></i>
@@ -164,7 +166,7 @@
                         
                         <a id="btn-whatsapp-flow" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-2">
                             <i class="fa-brands fa-whatsapp text-2xl"></i>
-                            ✅ Listo, espero mi pedido
+                            Confirmar pedido por WhatsApp
                         </a>
                     </div>
                 </div> <!-- Cierre pantalla-pago -->
@@ -231,36 +233,76 @@
         const opcionesRetiro = document.getElementById('opciones-retiro');
         const bloqueDireccion = document.getElementById('bloque-direccion');
         const inputDireccion = document.getElementById('input-direccion');
+        const selectRegion = document.getElementById('select-region');
+        const selectComuna = document.getElementById('input-comuna');
 
         const radiosCourier = opcionesCourier ? opcionesCourier.querySelectorAll('input[type="radio"]') : [];
         const radiosRetiro = opcionesRetiro ? opcionesRetiro.querySelectorAll('input[type="radio"]') : [];
+        const radioDomicilio = opcionesCourier ? opcionesCourier.querySelector('input[value="domicilio"]') : null;
+        const radioSucursal = opcionesCourier ? opcionesCourier.querySelector('input[value="sucursal"]') : null;
+
+        function limpiarYQuitarRequerido(radios) {
+            radios.forEach(radio => {
+                radio.checked = false;
+                radio.removeAttribute('required');
+            });
+        }
+
+        function exigir(radios) {
+            radios.forEach(radio => radio.setAttribute('required', 'true'));
+        }
+
+        // Dentro de courier: si elige "sucursal" no se exige dirección;
+        // si elige "domicilio" sí se exige.
+        function actualizarDireccionSegunModalidad() {
+            if (!bloqueDireccion || !inputDireccion) return;
+            if (radioSucursal && radioSucursal.checked) {
+                bloqueDireccion.classList.add('hidden');
+                inputDireccion.removeAttribute('required');
+                inputDireccion.value = '';
+            } else {
+                bloqueDireccion.classList.remove('hidden');
+                inputDireccion.setAttribute('required', 'true');
+            }
+        }
+
+        if (radioDomicilio) radioDomicilio.addEventListener('change', actualizarDireccionSegunModalidad);
+        if (radioSucursal) radioSucursal.addEventListener('change', actualizarDireccionSegunModalidad);
 
         if (typeof window.selectShipping === 'function') {
             const selectShippingOriginal = window.selectShipping;
-            
+
             window.selectShipping = function(metodo) {
                 // Primero, ejecutamos el código original de tus cards
                 selectShippingOriginal(metodo);
 
-                // Luego, aplicamos tu lógica exacta
-                const metodoSeleccionado = metodo.toLowerCase();
+                const esRetiro = metodo.toLowerCase().includes('retiro');
 
-                if (metodoSeleccionado.includes('retiro')) {
+                if (esRetiro) {
                     if (opcionesCourier) opcionesCourier.classList.add('hidden');
-                    if (bloqueDireccion) bloqueDireccion.classList.add('hidden');
                     if (opcionesRetiro) opcionesRetiro.classList.remove('hidden');
+                    if (bloqueDireccion) bloqueDireccion.classList.add('hidden');
 
-                    if (inputDireccion) inputDireccion.removeAttribute('required');
-                    radiosCourier.forEach(radio => radio.removeAttribute('required'));
-                    radiosRetiro.forEach(radio => radio.setAttribute('required', 'true'));
+                    // Limpiar selección y datos de courier que ya no aplican
+                    limpiarYQuitarRequerido(radiosCourier);
+                    exigir(radiosRetiro);
+                    if (inputDireccion) {
+                        inputDireccion.removeAttribute('required');
+                        inputDireccion.value = '';
+                    }
+                    if (selectRegion) selectRegion.value = '';
+                    if (selectComuna) {
+                        selectComuna.innerHTML = '<option value="">Selecciona tu comuna</option>';
+                        selectComuna.disabled = true;
+                    }
                 } else {
                     if (opcionesCourier) opcionesCourier.classList.remove('hidden');
-                    if (bloqueDireccion) bloqueDireccion.classList.remove('hidden');
                     if (opcionesRetiro) opcionesRetiro.classList.add('hidden');
 
-                    if (inputDireccion) inputDireccion.setAttribute('required', 'true');
-                    radiosCourier.forEach(radio => radio.setAttribute('required', 'true'));
-                    radiosRetiro.forEach(radio => radio.removeAttribute('required'));
+                    // Limpiar selección de retiro que ya no aplica
+                    limpiarYQuitarRequerido(radiosRetiro);
+                    exigir(radiosCourier);
+                    actualizarDireccionSegunModalidad();
                 }
             };
         }
