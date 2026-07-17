@@ -54,11 +54,10 @@ import MapaLocal from "../components/MapaLocal.astro";
             state.set = tipo;
             state.precioBase = precio;
 
-            // Cambiar estilos visuales dinámicamente
-            const allCards = document.querySelectorAll(".option-card");
-            if (allCards.length > 0) {
-                allCards.forEach((card) => card.classList.remove("selected"));
-            }
+            // Cambiar estilos visuales dinámicamente (solo tarjetas de producto,
+            // para no borrar la selección de modalidad de envío)
+            const allProductCards = document.querySelectorAll(".product-card");
+            allProductCards.forEach((card) => card.classList.remove("selected"));
 
             // Generar ID de la card a partir del nombre
             const cardId = "card-" + tipo.toLowerCase().replace(/ /g, "-");
@@ -85,14 +84,10 @@ import MapaLocal from "../components/MapaLocal.astro";
             // Si es chilexpress, sumamos la caja
             state.costoCaja = metodo === "chilexpress" ? 1500 : 0;
 
-            // Cambiar estilos visuales
-            document
-                .getElementById("card-starken")
-                .classList.remove("selected");
-            document
-                .getElementById("card-chilexpress")
-                .classList.remove("selected");
-            document.getElementById("card-retiro").classList.remove("selected");
+            // Cambiar estilos visuales (solo tarjetas de despacho, la selección
+            // de producto no debe verse afectada)
+            const allShippingCards = document.querySelectorAll(".shipping-card");
+            allShippingCards.forEach((card) => card.classList.remove("selected"));
 
             document.getElementById(`card-${metodo}`).classList.add("selected");
 
@@ -138,7 +133,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             if (state.envio === "chilexpress") {
                 rowCaja.classList.remove("hidden");
                 notaEnvio.innerText =
-                    "* Nota: Famores despachará y luego te enviará el comprobante de Chilexpress para que le transfieras el valor exacto del envío.";
+                    "* Nota: Famores cotizará el despacho por Chilexpress y te confirmará el total antes de solicitar el pago.";
             } else if (state.envio === "starken") {
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
@@ -160,6 +155,17 @@ import MapaLocal from "../components/MapaLocal.astro";
                 document.getElementById("btn-submit-main") ||
                 document.querySelector('button[onclick="generarWhatsApp()"]');
             const originalText = btn.innerHTML;
+            const errorEl = document.getElementById("form-error-message");
+
+            const mostrarError = (mensaje) => {
+                if (errorEl) {
+                    errorEl.textContent = mensaje;
+                    errorEl.classList.remove("hidden");
+                    errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            };
+
+            if (errorEl) errorEl.classList.add("hidden");
 
             const nombre = document.getElementById("input-nombre").value.trim();
             const apellido = document
@@ -178,14 +184,48 @@ import MapaLocal from "../components/MapaLocal.astro";
                 .getElementById("input-direccion")
                 .value.trim();
             const metodo_pago = document.getElementById("select-pago").value;
+            const tipoEntregaEl = document.querySelector(
+                'input[name="tipo_entrega"]:checked',
+            );
 
+            // Validación de campos visibles (P0-3): un mensaje específico por cada regla
+            if (!state.set) {
+                mostrarError("Selecciona un producto.");
+                return;
+            }
+            if (!state.envio) {
+                mostrarError("Selecciona una modalidad de envío.");
+                return;
+            }
+            if (!tipoEntregaEl) {
+                mostrarError(
+                    state.envio === "retiro"
+                        ? "Selecciona una modalidad de retiro."
+                        : "Selecciona si deseas recibir en domicilio o en sucursal.",
+                );
+                return;
+            }
+            if (state.envio !== "retiro") {
+                if (!region || !comuna) {
+                    mostrarError("Selecciona región y comuna.");
+                    return;
+                }
+                if (tipoEntregaEl.value === "domicilio" && !direccion) {
+                    mostrarError("Ingresa la dirección de entrega.");
+                    return;
+                }
+            }
             if (!nombre || !apellido || !rut || !correo || !telefono) {
-                btn.innerHTML = "⚠️ ¡Faltan tus datos!";
-                btn.classList.add("bg-red-500");
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.classList.remove("bg-red-500");
-                }, 2000);
+                mostrarError("Completa tus datos de contacto.");
+                return;
+            }
+            const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+            if (!correoValido) {
+                mostrarError("Ingresa un correo electrónico válido.");
+                return;
+            }
+            if (!metodo_pago) {
+                mostrarError("Selecciona un método de pago.");
                 return;
             }
 
@@ -226,17 +266,19 @@ import MapaLocal from "../components/MapaLocal.astro";
                 mode: "no-cors", // Evita bloqueos de seguridad del navegador
             })
                 .then(() => {
-                    console.log(
-                        "✅ Datos guardados en Excel y enviados al correo.",
+                    // El fetch usa modo "no-cors": el navegador no puede leer la
+                    // respuesta del servidor, por lo que no podemos afirmar que
+                    // Google Sheets recibió o guardó los datos correctamente.
+                    console.warn(
+                        "La solicitud fue enviada en modo no-cors; la respuesta del servidor no puede verificarse desde el navegador.",
                     );
-                    // Pantalla de Éxito
                     btn.classList.remove(
                         "bg-terapia-sage",
                         "hover:bg-terapia-sageDark",
                     );
                     btn.classList.add("bg-green-800", "hover:bg-green-900");
                     btn.innerHTML =
-                        "✅ ¡Pedido registrado con éxito! Tu orden está en proceso";
+                        "✅ Solicitud enviada. Continúa al pago y confirma tu pedido por WhatsApp.";
 
                     setTimeout(() => {
                         // Ocultar formulario
@@ -297,17 +339,27 @@ import MapaLocal from "../components/MapaLocal.astro";
                     }, 1500); // Transición suave después de 1.5s
                 })
                 .catch((error) => {
-                    console.error("❌ Error conectando con Google:", error);
+                    console.error(
+                        "❌ No fue posible enviar los datos del pedido:",
+                        error,
+                    );
                     btn.disabled = false;
                     btn.innerHTML = originalText;
-                    // Fallback: Si falla el sheets, al menos abre el whatsapp para no perder el cliente
+                    mostrarError(
+                        "No fue posible enviar tus datos automáticamente. Continúa por WhatsApp para confirmar tu pedido.",
+                    );
+                    // Fallback: si falla el envío a Sheets, igual abrimos WhatsApp para no perder al cliente.
+                    // Esto NO significa que el pedido haya quedado registrado.
                     window.open(obtenerUrlWhatsApp(), "_blank");
                 });
             // =========================================
 
             function obtenerUrlWhatsApp() {
-                // Captura el valor del radio button seleccionado:
-                const tipoEntrega = document.querySelector('input[name="tipo_entrega"]:checked')?.nextElementSibling.innerText || "No especificado";
+                // Captura el valor y la etiqueta del radio button seleccionado:
+                const tipoEntregaValor = tipoEntregaEl?.value || "";
+                const tipoEntrega =
+                    tipoEntregaEl?.nextElementSibling.innerText ||
+                    "No especificado";
 
                 // Construir el mensaje de WhatsApp para Famores
                 let envioVisual = "";
@@ -319,23 +371,30 @@ import MapaLocal from "../components/MapaLocal.astro";
 
                 let datosUbicacion = "";
                 if (state.envio !== "retiro") {
-                    datosUbicacion = `\n- Región: ${region || "Pendiente"}\n- Comuna: ${comuna || "Pendiente"}\n- Dirección: ${direccion || "Pendiente"}`;
+                    datosUbicacion = `\n- Región: ${region || "Pendiente"}\n- Comuna: ${comuna || "Pendiente"}`;
+                    if (tipoEntregaValor === "domicilio") {
+                        datosUbicacion += `\n- Dirección: ${direccion || "Pendiente"}`;
+                    }
                 }
 
                 let saludoInicial = "";
                 if (state.envio === "chilexpress") {
-                    saludoInicial = "¡Hola Famores! Vengo de la página web. Quedo a la espera de la cotización de envío por Chilexpress para poder realizar el pago total de mi pedido.";
+                    saludoInicial =
+                        "¡Hola Famores! Vengo de la página web. Quedo a la espera de la cotización del despacho por Chilexpress y del total final antes de realizar el pago.";
                 } else if (metodo_pago === "Transferencia Bancaria") {
                     saludoInicial =
-                        "¡Hola Famores! Vengo desde la página web. Te adjunto mi comprobante de pago por transferencia.";
+                        "¡Hola Famores! Vengo desde la página web. Realicé una transferencia y adjunto el comprobante para su verificación.";
                 } else {
+                    // Link de Pago (Flow): el sitio solo abrió el enlace de pago,
+                    // no puede confirmar que el pago fue aprobado (no hay
+                    // integración con la API/webhook de Flow todavía).
                     saludoInicial =
-                        "¡Hola Famores! Vengo desde la página web. Ya realicé mi pago por Flow. Te adjunto mi comprobante.";
+                        "¡Hola Famores! Vengo desde la página web. Abrí el enlace de pago de Flow. Mi pedido queda pendiente de verificación.";
                 }
 
                 let notaFinal = "";
-                if (state.envio === "starken" || state.envio === "chilexpress") {
-                    notaFinal = `\n\n*Nota:* Recuerda que el costo del envío es "Por Pagar" al momento de recibir o retirar tu paquete en la sucursal.`;
+                if (state.envio === "starken") {
+                    notaFinal = `\n\n*Nota:* Recuerda que el costo del envío es "Por Pagar" al momento de recibir tu paquete.`;
                 }
 
                 const mensaje = `${saludoInicial}
@@ -413,6 +472,21 @@ Quiero encargar mis Famores:
                 .getElementById("btn-whatsapp-flow")
                 .classList.remove("hidden");
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Accesibilidad mínima: permitir seleccionar las tarjetas
+            // (producto / envío) con teclado, ya que son <div> con onclick.
+            document.querySelectorAll(".option-card").forEach((card) => {
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("role", "button");
+                card.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+            });
+        });
 
         document.addEventListener("DOMContentLoaded", () => {
             const btnCopiar = document.getElementById("btn-copiar-datos");
