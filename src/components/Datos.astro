@@ -92,6 +92,10 @@
                         <span id="resumen-producto" class="text-gray-600">Set...</span>
                         <span id="resumen-precio" class="font-medium">$...</span>
                     </div>
+                    <div class="flex justify-between items-center mb-1 hidden" id="resumen-mascota-row">
+                        <span class="text-gray-600">+ Mascota: <span id="resumen-mascota-nombre">...</span></span>
+                        <span id="resumen-mascota-precio" class="font-medium">$...</span>
+                    </div>
                     <div class="flex justify-between items-center mb-3 hidden" id="resumen-caja-row">
                         <span class="text-gray-500 text-sm">Embalaje (Requisito Chilexpress)</span>
                         <span class="text-sm font-medium">+$1.500</span>
@@ -101,6 +105,7 @@
                         <span id="resumen-total" class="font-bold text-2xl text-terapia-wood">$...</span>
                     </div>
                     <p id="resumen-nota-envio" class="text-xs text-gray-500 mt-2 italic"></p>
+                    <p id="resumen-nota-pago" class="hidden text-xs text-terapia-wood mt-2 italic"></p>
                 </div>
 
                 <p id="form-error-message" class="hidden text-red-600 text-sm font-medium mb-3 text-center" role="alert"></p>
@@ -167,6 +172,20 @@
                         <a id="btn-whatsapp-flow" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-2">
                             <i class="fa-brands fa-whatsapp text-2xl"></i>
                             Confirmar pedido por WhatsApp
+                        </a>
+                    </div>
+
+                    <!-- Fallback temporal: productos sin link de Flow confirmado todavía
+                         (por ahora, Set Standard con Expresiones). No se usa una URL ficticia
+                         de Flow; el pago se coordina directamente por WhatsApp. -->
+                    <div id="bloque-coordinacion-whatsapp" class="hidden flex-col items-center text-center space-y-4">
+                        <p id="texto-coordinacion-pago" class="text-gray-700">
+                            Coordinaremos el pago completo de tu pedido directamente por WhatsApp.
+                        </p>
+
+                        <a id="btn-whatsapp-coordinacion" href="#" target="_blank" rel="noopener noreferrer" class="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-4">
+                            <i class="fa-brands fa-whatsapp text-2xl"></i>
+                            💬 Coordinar mi pago por WhatsApp
                         </a>
                     </div>
                 </div> <!-- Cierre pantalla-pago -->
