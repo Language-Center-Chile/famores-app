@@ -35,6 +35,10 @@ import MapaLocal from "../components/MapaLocal.astro";
             costoCaja: 0,
         };
 
+        // Única dirección oficial de retiro presencial que debe aparecer
+        // en cualquier texto público del sitio.
+        const DIRECCION_RETIRO = "Avenida Egaña 1638-B, Peñalolén, Santiago, Chile";
+
         // Enlaces estáticos de Flow: cada botón cobra un monto fijo, por eso
         // solo existen para sets principales cuyo precio representa el total
         // exacto del pedido (sin mascota agregada). No agregar aquí entradas
@@ -54,17 +58,21 @@ import MapaLocal from "../components/MapaLocal.astro";
             return (
                 metodoPago === "Link de Pago (Flow)" &&
                 state.envio !== "chilexpress" &&
+                state.envio !== "internacional" &&
                 !state.mascota &&
                 Boolean(flowLinks[state.set])
             );
         }
 
         // Canal de pago real según el método elegido y el estado actual.
-        // Prioridad: Chilexpress > Flow inválido (sin enlace o con mascota)
-        // > Flow válido > Transferencia. Se usa tanto para decidir qué
-        // bloque de pago mostrar como para registrar el método real en
-        // Google Sheets, así ambos quedan siempre sincronizados.
+        // Prioridad: Internacional > Chilexpress > Flow inválido (sin
+        // enlace o con mascota) > Flow válido > Transferencia. Se usa
+        // tanto para decidir qué bloque de pago mostrar como para
+        // registrar el método real en Google Sheets, así ambos quedan
+        // siempre sincronizados. Un pedido internacional nunca abre Flow,
+        // sin importar el método de pago elegido en el <select>.
         function obtenerCanalPago(metodoPago) {
+            if (state.envio === "internacional") return "internacional";
             if (state.envio === "chilexpress") return "chilexpress";
             if (metodoPago === "Link de Pago (Flow)") {
                 if (puedePagarDirectamenteConFlow(metodoPago))
@@ -159,12 +167,14 @@ import MapaLocal from "../components/MapaLocal.astro";
 
             document.getElementById(`card-${metodo}`).classList.add("selected");
 
-            // Mostrar u ocultar Región/Comuna dependiendo de si es retiro
+            // Mostrar u ocultar Región/Comuna: no aplica para retiro (no se
+            // despacha) ni para internacional (usa País/Ciudad, gestionado
+            // aparte en Datos.astro).
             const containerRC = document.getElementById(
                 "container-region-comuna",
             );
             if (containerRC) {
-                if (metodo === "retiro") {
+                if (metodo === "retiro" || metodo === "internacional") {
                     containerRC.classList.add("hidden");
                 } else {
                     containerRC.classList.remove("hidden");
@@ -220,10 +230,14 @@ import MapaLocal from "../components/MapaLocal.astro";
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
                     "* Nota: Pagarás el envío directamente a Starken cuando recibas tu paquete.";
+            } else if (state.envio === "internacional") {
+                rowCaja.classList.add("hidden");
+                notaEnvio.innerText =
+                    "Despacho internacional pendiente de cotización. El total mostrado no incluye envío, courier, impuestos, aduanas ni otros cargos asociados.";
             } else {
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
-                    "* Nota: Famores se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
+                    "* Nota: Famores se pondrá en contacto contigo para coordinar el retiro en Avenida Egaña 1638-B, Peñalolén.";
             }
 
             const total = state.precioBase + state.precioMascota + state.costoCaja;
@@ -278,6 +292,10 @@ import MapaLocal from "../components/MapaLocal.astro";
             const direccion = document
                 .getElementById("input-direccion")
                 .value.trim();
+            const paisEl = document.getElementById("input-pais");
+            const ciudadEl = document.getElementById("input-ciudad");
+            const pais = paisEl ? paisEl.value.trim() : "";
+            const ciudad = ciudadEl ? ciudadEl.value.trim() : "";
             const metodo_pago = document.getElementById("select-pago").value;
             const tipoEntregaEl = document.querySelector(
                 'input[name="tipo_entrega"]:checked',
@@ -292,22 +310,35 @@ import MapaLocal from "../components/MapaLocal.astro";
                 mostrarError("Selecciona una modalidad de envío.");
                 return;
             }
-            if (!tipoEntregaEl) {
-                mostrarError(
-                    state.envio === "retiro"
-                        ? "Selecciona una modalidad de retiro."
-                        : "Selecciona si deseas recibir en domicilio o en sucursal.",
-                );
-                return;
-            }
-            if (state.envio !== "retiro") {
-                if (!region || !comuna) {
-                    mostrarError("Selecciona región y comuna.");
+            if (state.envio === "internacional") {
+                // Despacho internacional: no exige tipo_entrega ni datos
+                // chilenos, solo país/ciudad para poder cotizar.
+                if (!pais) {
+                    mostrarError("Selecciona el país de destino.");
                     return;
                 }
-                if (tipoEntregaEl.value === "domicilio" && !direccion) {
-                    mostrarError("Ingresa la dirección de entrega.");
+                if (!ciudad) {
+                    mostrarError("Ingresa la ciudad de destino.");
                     return;
+                }
+            } else {
+                if (!tipoEntregaEl) {
+                    mostrarError(
+                        state.envio === "retiro"
+                            ? "Selecciona una modalidad de retiro."
+                            : "Selecciona si deseas recibir en domicilio o en sucursal.",
+                    );
+                    return;
+                }
+                if (state.envio !== "retiro") {
+                    if (!region || !comuna) {
+                        mostrarError("Selecciona región y comuna.");
+                        return;
+                    }
+                    if (tipoEntregaEl.value === "domicilio" && !direccion) {
+                        mostrarError("Ingresa la dirección de entrega.");
+                        return;
+                    }
                 }
             }
             if (!nombre || !apellido || !rut || !correo || !telefono) {
@@ -334,6 +365,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             let envioStr = "";
             if (state.envio === "starken") envioStr = "starken";
             else if (state.envio === "chilexpress") envioStr = "chilexpress";
+            else if (state.envio === "internacional") envioStr = "internacional";
             else envioStr = "retiro";
 
             // Canal de pago real (única fuente de verdad, reutilizada abajo
@@ -357,6 +389,7 @@ import MapaLocal from "../components/MapaLocal.astro";
             // crudo del <select>, para no perder trazabilidad de los casos
             // en que Flow no pudo usarse directamente.
             const metodoPagoParaSheets = {
+                internacional: "Coordinación por WhatsApp - despacho internacional",
                 chilexpress: "Coordinación por WhatsApp - Chilexpress",
                 "flow-sin-enlace":
                     "Coordinación por WhatsApp - Flow no disponible",
@@ -366,15 +399,25 @@ import MapaLocal from "../components/MapaLocal.astro";
                 transferencia: "Transferencia Bancaria",
             }[canalPago];
 
+            // El esquema de Sheets no cambia: para pedidos internacionales
+            // se reutilizan los mismos campos region/comuna/direccion con
+            // país/ciudad (y dirección vacía), en vez de agregar columnas.
+            const regionParaSheets =
+                state.envio === "internacional" ? pais : region;
+            const comunaParaSheets =
+                state.envio === "internacional" ? ciudad : comuna;
+            const direccionParaSheets =
+                state.envio === "internacional" ? "" : direccion;
+
             const formData = new FormData();
             formData.append("nombre", nombre);
             formData.append("apellido", apellido);
             formData.append("rut", rut);
             formData.append("correo", correo);
             formData.append("telefono", telefono);
-            formData.append("region", region);
-            formData.append("comuna", comuna);
-            formData.append("direccion", direccion);
+            formData.append("region", regionParaSheets);
+            formData.append("comuna", comunaParaSheets);
+            formData.append("direccion", direccionParaSheets);
             formData.append("metodo_pago", metodoPagoParaSheets);
             formData.append("tipo_set", tipoSetParaSheets);
             formData.append("metodo_envio", envioStr);
@@ -428,11 +471,15 @@ import MapaLocal from "../components/MapaLocal.astro";
                         const bloqueCoordinacion = document.getElementById(
                             "bloque-coordinacion-whatsapp",
                         );
+                        const bloqueInternacional = document.getElementById(
+                            "bloque-internacional",
+                        );
                         [
                             bloqueFlow,
                             bloqueTransferencia,
                             bloqueChilexpress,
                             bloqueCoordinacion,
+                            bloqueInternacional,
                         ].forEach((bloque) => bloque && bloque.classList.add("hidden"));
 
                         // Único punto que asigna currentFlowUrl: no depende de que
@@ -444,10 +491,17 @@ import MapaLocal from "../components/MapaLocal.astro";
                                 ? flowLinks[state.set]
                                 : "";
 
-                        // Prioridad: Chilexpress > Flow inválido (sin enlace o con
-                        // mascota) > Flow válido > Transferencia. Un enlace Flow solo
-                        // se abre cuando cobra exactamente el total mostrado.
-                        if (canalPago === "chilexpress") {
+                        // Prioridad: Internacional > Chilexpress > Flow inválido (sin
+                        // enlace o con mascota) > Flow válido > Transferencia. Un
+                        // enlace Flow solo se abre cuando cobra exactamente el total
+                        // mostrado; un pedido internacional nunca abre Flow.
+                        if (canalPago === "internacional") {
+                            if (bloqueInternacional)
+                                bloqueInternacional.classList.remove("hidden");
+                            document.getElementById(
+                                "btn-whatsapp-internacional",
+                            ).href = whatsappUrl;
+                        } else if (canalPago === "chilexpress") {
                             if (bloqueChilexpress)
                                 bloqueChilexpress.classList.remove("hidden");
                             document.getElementById(
@@ -513,10 +567,15 @@ import MapaLocal from "../components/MapaLocal.astro";
                     envioVisual = "Starken (Envío por pagar)";
                 else if (state.envio === "chilexpress")
                     envioVisual = "Chilexpress";
-                else envioVisual = "Retiro Presencial (Metro Grecia)";
+                else if (state.envio === "internacional")
+                    envioVisual = "Despacho Internacional";
+                else envioVisual = "Retiro Presencial";
 
+                // Región/Comuna solo aplican a envíos nacionales por courier
+                // (Starken/Chilexpress). Ni retiro ni internacional los usan
+                // (internacional usa País/Ciudad, armado aparte más abajo).
                 let datosUbicacion = "";
-                if (state.envio !== "retiro") {
+                if (state.envio !== "retiro" && state.envio !== "internacional") {
                     datosUbicacion = `\n- Región: ${region || "Pendiente"}\n- Comuna: ${comuna || "Pendiente"}`;
                     if (tipoEntregaValor === "domicilio") {
                         datosUbicacion += `\n- Dirección: ${direccion || "Pendiente"}`;
@@ -524,7 +583,10 @@ import MapaLocal from "../components/MapaLocal.astro";
                 }
 
                 let saludoInicial = "";
-                if (canalPago === "chilexpress") {
+                if (canalPago === "internacional") {
+                    saludoInicial =
+                        "¡Hola Famores! Vengo desde la página web. Quiero solicitar un despacho internacional y necesito cotizar el envío antes de realizar el pago.";
+                } else if (canalPago === "chilexpress") {
                     saludoInicial =
                         "¡Hola Famores! Vengo de la página web. Quedo a la espera de la cotización del despacho por Chilexpress y del total final antes de realizar el pago.";
                 } else if (canalPago === "flow-sin-enlace") {
@@ -551,6 +613,8 @@ import MapaLocal from "../components/MapaLocal.astro";
                 let notaFinal = "";
                 if (state.envio === "starken") {
                     notaFinal = `\n\n*Nota:* Recuerda que el costo del envío es "Por Pagar" al momento de recibir tu paquete.`;
+                } else if (state.envio === "retiro") {
+                    notaFinal = `\n\n*Nota:* Retiro en ${DIRECCION_RETIRO}.`;
                 }
 
                 // Línea de mascota independiente: solo aparece si se agregó una.
@@ -559,12 +623,37 @@ import MapaLocal from "../components/MapaLocal.astro";
                     ? `\n- *Mascota:* ${state.mascota}`
                     : "";
 
-                const mensaje = `${saludoInicial}
+                // El despacho internacional no lleva región/comuna/dirección
+                // chilena ni "Modalidad de Entrega" (no existe tipo_entrega
+                // en ese flujo): en su lugar muestra País/Ciudad y la nota
+                // de cotización pendiente, tal como pide el formato acordado.
+                const mensaje =
+                    state.envio === "internacional"
+                        ? `${saludoInicial}
 
 Quiero encargar mis Famores:
 
 - *Pedido:* ${tipoSetStr}${lineaMascota}
-- *Total a transferir hoy:* $${total.toLocaleString("es-CL")}
+- *Total del pedido:* $${total.toLocaleString("es-CL")}
+- *Entrega:* Despacho Internacional
+- *País:* ${pais || "Pendiente"}
+- *Ciudad:* ${ciudad || "Pendiente"}
+
+*Nota:* Despacho internacional pendiente de cotización. El total indicado no incluye envío, courier, impuestos, aduanas ni otros cargos asociados.
+
+*Mis Datos:*
+- Nombre: ${nombre} ${apellido}
+- Rut: ${rut}
+- Correo: ${correo}
+- Teléfono: ${telefono}
+
+¡Espero mis Famores!`
+                        : `${saludoInicial}
+
+Quiero encargar mis Famores:
+
+- *Pedido:* ${tipoSetStr}${lineaMascota}
+- *Total del pedido:* $${total.toLocaleString("es-CL")}
 - *Envío preferido:* ${envioVisual}
 - *Método de Pago:* ${metodo_pago}
 
@@ -621,6 +710,10 @@ Quiero encargar mis Famores:
                 "bloque-coordinacion-whatsapp",
             );
             if (bloqueCoordinacion) bloqueCoordinacion.classList.add("hidden");
+            const bloqueInternacional = document.getElementById(
+                "bloque-internacional",
+            );
+            if (bloqueInternacional) bloqueInternacional.classList.add("hidden");
 
             // Resetear estados de botones internos
             document.getElementById("btn-pago-flow").classList.remove("hidden");
