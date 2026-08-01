@@ -120,7 +120,7 @@
                 <!-- Pantalla de Pago (Paso 2) -->
                 <div id="pantalla-pago" class="hidden smooth-transition">
                     <!-- Botón volver atrás -->
-                    <button onclick="volverAFormulario()" class="text-gray-400 hover:text-gray-600 font-medium text-sm mb-4 flex items-center transition-colors">
+                    <button onclick="volverAFormulario()" class="btn-volver-atras text-gray-600 hover:text-gray-800 font-medium text-sm mb-4 flex items-center transition-colors">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Volver atrás para editar datos
                     </button>
 
@@ -191,6 +191,17 @@
                 </div> <!-- Cierre pantalla-pago -->
             </div>
         </div>
+
+<style>
+    /* Contraste suficiente (gray-600/800 vía clases de Tailwind) más un
+       foco de teclado visible consistente con el resto del sitio
+       (mismo tono que .option-card:focus-visible en Layout.astro). */
+    .btn-volver-atras:focus-visible {
+        outline: 2px solid #8fac9a;
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+</style>
 
 <script is:inline>
     const dataRegiones = {

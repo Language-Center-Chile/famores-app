@@ -97,7 +97,7 @@ const mascotas = [
         <h2 class="text-2xl md:text-3xl font-bold text-terapia-text">
             Elige tu set Famores
         </h2>
-        <p class="text-gray-500 mt-3">
+        <p class="text-gray-500 mt-3 pr-16 sm:pr-0">
             Cada set incluye 14 figuras elaboradas para representar vínculos,
             familias y diferentes configuraciones humanas. Elige la
             alternativa que mejor se adapte a tu trabajo o propósito.
@@ -109,7 +109,7 @@ const mascotas = [
             setsPrincipales.map((producto) => (
                 <button
                     type="button"
-                    class="option-card set-card smooth-transition rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative"
+                    class="option-card set-card smooth-transition rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative h-full"
                     id={`card-${producto.id}`}
                     onclick={`selectSet('${producto.nombre}', ${producto.precio})`}
                     aria-pressed="false"
@@ -141,13 +141,15 @@ const mascotas = [
                             {producto.contenido}
                         </p>
 
-                        {producto.nota && (
-                            <p class="mt-3 text-xs italic text-terapia-wood bg-terapia-woodLight/15 rounded-lg px-3 py-2">
-                                {producto.nota}
-                            </p>
-                        )}
+                        <div class="mt-3 min-h-[2.75rem]">
+                            {producto.nota && (
+                                <p class="text-xs italic text-terapia-wood bg-terapia-woodLight/15 rounded-lg px-3 py-2">
+                                    {producto.nota}
+                                </p>
+                            )}
+                        </div>
 
-                        <span class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 text-sm">
+                        <span class="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 text-sm">
                             {producto.boton}
                             <i class="fa-solid fa-arrow-right text-xs"></i>
                         </span>
@@ -218,3 +220,15 @@ const mascotas = [
         }
     </div>
 </section>
+
+<style>
+    /* Layout.astro define "button.option-card { display: block; }" para
+       resetear el <button> nativo; esa regla, por especificidad (elemento +
+       clase), gana sobre la utilidad ".flex" de Tailwind y anulaba el
+       layout en columna que necesitan estas tarjetas para que el botón
+       quede alineado al final mediante margin-top: auto. Se restablece acá,
+       específico a las tarjetas de set, sin tocar el reset global. */
+    button.set-card {
+        display: flex;
+    }
+</style>
