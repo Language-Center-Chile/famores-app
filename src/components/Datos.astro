@@ -43,6 +43,17 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden" id="container-pais-ciudad">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
+                        <input type="text" id="input-pais" placeholder="Ej: Argentina" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                        <input type="text" id="input-ciudad" placeholder="Ej: Mendoza" class="w-full rounded-lg border-gray-300 border p-3 focus:ring-terapia-sage focus:border-terapia-sage outline-none smooth-transition">
+                    </div>
+                </div>
+
                 <div id="opciones-courier" class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">¿Dónde prefieres recibir tu pedido?</label>
                     <div class="flex flex-col sm:flex-row gap-4">
@@ -92,15 +103,20 @@
                         <span id="resumen-producto" class="text-gray-600">Set...</span>
                         <span id="resumen-precio" class="font-medium">$...</span>
                     </div>
+                    <div class="flex justify-between items-center mb-1 hidden" id="resumen-mascota-row">
+                        <span class="text-gray-600">+ Mascota: <span id="resumen-mascota-nombre">...</span></span>
+                        <span id="resumen-mascota-precio" class="font-medium">$...</span>
+                    </div>
                     <div class="flex justify-between items-center mb-3 hidden" id="resumen-caja-row">
                         <span class="text-gray-500 text-sm">Embalaje (Requisito Chilexpress)</span>
                         <span class="text-sm font-medium">+$1.500</span>
                     </div>
                     <div class="border-t border-gray-100 pt-2 flex justify-between items-center">
-                        <span class="font-semibold text-lg">Total a transferir ahora:</span>
+                        <span class="font-semibold text-lg">Total del pedido:</span>
                         <span id="resumen-total" class="font-bold text-2xl text-terapia-wood">$...</span>
                     </div>
                     <p id="resumen-nota-envio" class="text-xs text-gray-500 mt-2 italic"></p>
+                    <p id="resumen-nota-pago" class="hidden text-xs text-terapia-wood mt-2 italic"></p>
                 </div>
 
                 <p id="form-error-message" class="hidden text-red-600 text-sm font-medium mb-3 text-center" role="alert"></p>
@@ -115,7 +131,7 @@
                 <!-- Pantalla de Pago (Paso 2) -->
                 <div id="pantalla-pago" class="hidden smooth-transition">
                     <!-- Botón volver atrás -->
-                    <button onclick="volverAFormulario()" class="text-gray-400 hover:text-gray-600 font-medium text-sm mb-4 flex items-center transition-colors">
+                    <button onclick="volverAFormulario()" class="btn-volver-atras text-gray-600 hover:text-gray-800 font-medium text-sm mb-4 flex items-center transition-colors">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Volver atrás para editar datos
                     </button>
 
@@ -169,9 +185,48 @@
                             Confirmar pedido por WhatsApp
                         </a>
                     </div>
+
+                    <!-- Fallback temporal: productos sin link de Flow confirmado todavía
+                         (por ahora, Set Standard con Expresiones). No se usa una URL ficticia
+                         de Flow; el pago se coordina directamente por WhatsApp. -->
+                    <div id="bloque-coordinacion-whatsapp" class="hidden flex-col items-center text-center space-y-4">
+                        <p id="texto-coordinacion-pago" class="text-gray-700">
+                            Coordinaremos el pago completo de tu pedido directamente por WhatsApp.
+                        </p>
+
+                        <a id="btn-whatsapp-coordinacion" href="#" target="_blank" rel="noopener noreferrer" class="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-4">
+                            <i class="fa-brands fa-whatsapp text-2xl"></i>
+                            💬 Coordinar mi pago por WhatsApp
+                        </a>
+                    </div>
+
+                    <!-- Despacho internacional: siempre coordinado por WhatsApp, nunca
+                         por Flow. No hay total final hasta cotizar envío al país/ciudad
+                         de destino. -->
+                    <div id="bloque-internacional" class="hidden flex-col items-center text-center space-y-4">
+                        <p class="text-gray-700">
+                            El despacho internacional debe cotizarse según el país y la ciudad de destino. Coordinaremos por WhatsApp el valor del envío y la forma de pago antes de confirmar el pedido.
+                        </p>
+
+                        <a id="btn-whatsapp-internacional" href="#" target="_blank" rel="noopener noreferrer" class="w-full bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-1 smooth-transition flex items-center justify-center gap-3 text-lg mt-4">
+                            <i class="fa-brands fa-whatsapp text-2xl"></i>
+                            Cotizar despacho internacional por WhatsApp
+                        </a>
+                    </div>
                 </div> <!-- Cierre pantalla-pago -->
             </div>
         </div>
+
+<style>
+    /* Contraste suficiente (gray-600/800 vía clases de Tailwind) más un
+       foco de teclado visible consistente con el resto del sitio
+       (mismo tono que .option-card:focus-visible en Layout.astro). */
+    .btn-volver-atras:focus-visible {
+        outline: 2px solid #8fac9a;
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+</style>
 
 <script is:inline>
     const dataRegiones = {
@@ -235,6 +290,9 @@
         const inputDireccion = document.getElementById('input-direccion');
         const selectRegion = document.getElementById('select-region');
         const selectComuna = document.getElementById('input-comuna');
+        const containerPaisCiudad = document.getElementById('container-pais-ciudad');
+        const inputPais = document.getElementById('input-pais');
+        const inputCiudad = document.getElementById('input-ciudad');
 
         const radiosCourier = opcionesCourier ? opcionesCourier.querySelectorAll('input[type="radio"]') : [];
         const radiosRetiro = opcionesRetiro ? opcionesRetiro.querySelectorAll('input[type="radio"]') : [];
@@ -250,6 +308,21 @@
 
         function exigir(radios) {
             radios.forEach(radio => radio.setAttribute('required', 'true'));
+        }
+
+        // Limpia País/Ciudad y los deja de exigir: se usa al salir de la
+        // modalidad internacional hacia cualquier modalidad nacional, para
+        // no dejar datos internacionales residuales.
+        function limpiarPaisCiudad() {
+            if (containerPaisCiudad) containerPaisCiudad.classList.add('hidden');
+            if (inputPais) {
+                inputPais.removeAttribute('required');
+                inputPais.value = '';
+            }
+            if (inputCiudad) {
+                inputCiudad.removeAttribute('required');
+                inputCiudad.value = '';
+            }
         }
 
         // Dentro de courier: si elige "sucursal" no se exige dirección;
@@ -276,9 +349,35 @@
                 // Primero, ejecutamos el código original de tus cards
                 selectShippingOriginal(metodo);
 
-                const esRetiro = metodo.toLowerCase().includes('retiro');
+                const esRetiro = metodo === 'retiro';
+                const esInternacional = metodo === 'internacional';
 
-                if (esRetiro) {
+                if (esInternacional) {
+                    // Despacho internacional: no exige tipo_entrega ni datos
+                    // chilenos. Se limpian ambos grupos de radios nacionales
+                    // para no dejar nada seleccionado de forma residual.
+                    if (opcionesCourier) opcionesCourier.classList.add('hidden');
+                    if (opcionesRetiro) opcionesRetiro.classList.add('hidden');
+                    if (bloqueDireccion) bloqueDireccion.classList.add('hidden');
+
+                    limpiarYQuitarRequerido(radiosCourier);
+                    limpiarYQuitarRequerido(radiosRetiro);
+                    if (inputDireccion) {
+                        inputDireccion.removeAttribute('required');
+                        inputDireccion.value = '';
+                    }
+                    if (selectRegion) selectRegion.value = '';
+                    if (selectComuna) {
+                        selectComuna.innerHTML = '<option value="">Selecciona tu comuna</option>';
+                        selectComuna.disabled = true;
+                    }
+
+                    if (containerPaisCiudad) containerPaisCiudad.classList.remove('hidden');
+                    if (inputPais) inputPais.setAttribute('required', 'true');
+                    if (inputCiudad) inputCiudad.setAttribute('required', 'true');
+                } else if (esRetiro) {
+                    limpiarPaisCiudad();
+
                     if (opcionesCourier) opcionesCourier.classList.add('hidden');
                     if (opcionesRetiro) opcionesRetiro.classList.remove('hidden');
                     if (bloqueDireccion) bloqueDireccion.classList.add('hidden');
@@ -296,6 +395,8 @@
                         selectComuna.disabled = true;
                     }
                 } else {
+                    limpiarPaisCiudad();
+
                     if (opcionesCourier) opcionesCourier.classList.remove('hidden');
                     if (opcionesRetiro) opcionesRetiro.classList.add('hidden');
 

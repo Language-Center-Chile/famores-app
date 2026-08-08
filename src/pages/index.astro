@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
 import Set from "../components/Set.astro";
+import ComposicionSet from "../components/ComposicionSet.astro";
 import Modalidad from "../components/Modalidad.astro";
 import Datos from "../components/Datos.astro";
 import MapaLocal from "../components/MapaLocal.astro";
@@ -10,31 +11,11 @@ import MapaLocal from "../components/MapaLocal.astro";
 <Layout title="Cotizador FAMORES">
     <Hero />
 
-    <section class="max-w-5xl mx-auto py-8 px-4 mt-4">
-        <h3 class="text-center text-gray-500 font-light italic mb-6">
-            Hechos a mano con intención y energía
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <img
-                src="/553049465_18066532814254073_584694994237409713_n.jpg"
-                alt="Materia prima"
-                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
-            />
-            <img
-                src="/623875796_18071898536148036_4883687187928227649_n.webp"
-                alt="Arte en proceso"
-                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
-            />
-            <img
-                src="/622128275_18072769019379029_4834779806685121061_n.jpg"
-                alt="Familia terminada"
-                class="w-full h-48 md:h-64 object-cover rounded-2xl shadow-sm"
-            />
-        </div>
-    </section>
+    <Set />
+
+    <ComposicionSet />
 
     <div class="max-w-3xl mx-auto space-y-8 px-4 pb-12 mt-4">
-        <Set />
         <Modalidad />
         <MapaLocal />
         <Datos />
@@ -42,28 +23,89 @@ import MapaLocal from "../components/MapaLocal.astro";
 
     <script is:inline>
         // Variables de estado
+        // "set" (obligatorio) y "mascota" (complemento opcional) son
+        // independientes: elegir una mascota no reemplaza ni desmarca el
+        // set principal, y cambiar de set no afecta a la mascota elegida.
         let state = {
             set: null,
             precioBase: 0,
+            mascota: null,
+            precioMascota: 0,
             envio: null,
             costoCaja: 0,
         };
 
-        // Función cuando seleccionan un Set
+        // Única dirección oficial de retiro presencial que debe aparecer
+        // en cualquier texto público del sitio.
+        const DIRECCION_RETIRO = "Avenida Egaña 1638-B, Peñalolén, Santiago, Chile";
+
+        // Enlaces estáticos de Flow: cada botón cobra un monto fijo, por eso
+        // solo existen para sets principales cuyo precio representa el total
+        // exacto del pedido (sin mascota agregada). No agregar aquí entradas
+        // de mascota: ningún enlace Flow cobra el combinado set + mascota.
+        const flowLinks = {
+            "Set Standard Pintado":
+                "https://www.flow.cl/btn.php?token=1uikdzp",
+            "Set Sin Pintar": "https://www.flow.cl/btn.php?token=hqqv39f",
+            "Set Personalizado": "https://www.flow.cl/btn.php?token=kvyqkd4",
+        };
+
+        // Única regla que decide si un enlace Flow puede abrirse
+        // directamente: debe cobrar exactamente el total mostrado (sin
+        // mascota, sin Chilexpress pendiente de cotizar, y con enlace
+        // configurado para el set elegido).
+        function puedePagarDirectamenteConFlow(metodoPago) {
+            return (
+                metodoPago === "Link de Pago (Flow)" &&
+                state.envio !== "chilexpress" &&
+                state.envio !== "internacional" &&
+                !state.mascota &&
+                Boolean(flowLinks[state.set])
+            );
+        }
+
+        // Canal de pago real según el método elegido y el estado actual.
+        // Prioridad: Internacional > Chilexpress > Flow inválido (sin
+        // enlace o con mascota) > Flow válido > Transferencia. Se usa
+        // tanto para decidir qué bloque de pago mostrar como para
+        // registrar el método real en Google Sheets, así ambos quedan
+        // siempre sincronizados. Un pedido internacional nunca abre Flow,
+        // sin importar el método de pago elegido en el <select>.
+        function obtenerCanalPago(metodoPago) {
+            if (state.envio === "internacional") return "internacional";
+            if (state.envio === "chilexpress") return "chilexpress";
+            if (metodoPago === "Link de Pago (Flow)") {
+                if (puedePagarDirectamenteConFlow(metodoPago))
+                    return "flow-directo";
+                if (!flowLinks[state.set]) return "flow-sin-enlace";
+                return "flow-pedido-combinado";
+            }
+            return "transferencia";
+        }
+
+        // Función cuando seleccionan un Set principal (grupo exclusivo: .set-card)
         function selectSet(tipo, precio) {
             state.set = tipo;
             state.precioBase = precio;
 
-            // Cambiar estilos visuales dinámicamente (solo tarjetas de producto,
-            // para no borrar la selección de modalidad de envío)
-            const allProductCards = document.querySelectorAll(".product-card");
-            allProductCards.forEach((card) => card.classList.remove("selected"));
+            // Cambiar estilos visuales dinámicamente solo entre las 4 tarjetas
+            // de set (no toca las tarjetas de mascota ni las de envío)
+            const allSetCards = document.querySelectorAll(".set-card");
+            allSetCards.forEach((card) => {
+                card.classList.remove("selected");
+                if (card.hasAttribute("aria-pressed")) {
+                    card.setAttribute("aria-pressed", "false");
+                }
+            });
 
             // Generar ID de la card a partir del nombre
             const cardId = "card-" + tipo.toLowerCase().replace(/ /g, "-");
             const selectedCard = document.getElementById(cardId);
             if (selectedCard) {
                 selectedCard.classList.add("selected");
+                if (selectedCard.hasAttribute("aria-pressed")) {
+                    selectedCard.setAttribute("aria-pressed", "true");
+                }
             }
 
             // Habilitar la sección de envío
@@ -73,6 +115,40 @@ import MapaLocal from "../components/MapaLocal.astro";
                     "opacity-50",
                     "pointer-events-none",
                 );
+
+            actualizarResumen();
+        }
+
+        // Función cuando seleccionan una Mascota (grupo exclusivo: .mascota-card,
+        // independiente del set). Volver a hacer click sobre la mascota ya
+        // seleccionada la quita (no obliga a tener una mascota).
+        function selectMascota(tipo, precio) {
+            const cardId = "card-" + tipo.toLowerCase().replace(/ /g, "-");
+            const yaSeleccionada = state.mascota === tipo;
+
+            document.querySelectorAll(".mascota-card").forEach((card) => {
+                card.classList.remove("selected");
+                if (card.hasAttribute("aria-pressed")) {
+                    card.setAttribute("aria-pressed", "false");
+                }
+            });
+
+            if (yaSeleccionada) {
+                // Quitar la mascota
+                state.mascota = null;
+                state.precioMascota = 0;
+            } else {
+                state.mascota = tipo;
+                state.precioMascota = precio;
+
+                const selectedCard = document.getElementById(cardId);
+                if (selectedCard) {
+                    selectedCard.classList.add("selected");
+                    if (selectedCard.hasAttribute("aria-pressed")) {
+                        selectedCard.setAttribute("aria-pressed", "true");
+                    }
+                }
+            }
 
             actualizarResumen();
         }
@@ -91,12 +167,14 @@ import MapaLocal from "../components/MapaLocal.astro";
 
             document.getElementById(`card-${metodo}`).classList.add("selected");
 
-            // Mostrar u ocultar Región/Comuna dependiendo de si es retiro
+            // Mostrar u ocultar Región/Comuna: no aplica para retiro (no se
+            // despacha) ni para internacional (usa País/Ciudad, gestionado
+            // aparte en Datos.astro).
             const containerRC = document.getElementById(
                 "container-region-comuna",
             );
             if (containerRC) {
-                if (metodo === "retiro") {
+                if (metodo === "retiro" || metodo === "internacional") {
                     containerRC.classList.add("hidden");
                 } else {
                     containerRC.classList.remove("hidden");
@@ -127,6 +205,20 @@ import MapaLocal from "../components/MapaLocal.astro";
             document.getElementById("resumen-precio").innerText =
                 `$${state.precioBase.toLocaleString("es-CL")}`;
 
+            // Mascota opcional: fila independiente del set, no reemplaza su nombre
+            const rowMascota = document.getElementById("resumen-mascota-row");
+            if (rowMascota) {
+                if (state.mascota) {
+                    document.getElementById("resumen-mascota-nombre").innerText =
+                        state.mascota;
+                    document.getElementById("resumen-mascota-precio").innerText =
+                        `$${state.precioMascota.toLocaleString("es-CL")}`;
+                    rowMascota.classList.remove("hidden");
+                } else {
+                    rowMascota.classList.add("hidden");
+                }
+            }
+
             const rowCaja = document.getElementById("resumen-caja-row");
             const notaEnvio = document.getElementById("resumen-nota-envio");
 
@@ -138,15 +230,32 @@ import MapaLocal from "../components/MapaLocal.astro";
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
                     "* Nota: Pagarás el envío directamente a Starken cuando recibas tu paquete.";
+            } else if (state.envio === "internacional") {
+                rowCaja.classList.add("hidden");
+                notaEnvio.innerText =
+                    "Despacho internacional pendiente de cotización. El total mostrado no incluye envío, courier, impuestos, aduanas ni otros cargos asociados.";
             } else {
                 rowCaja.classList.add("hidden");
                 notaEnvio.innerText =
-                    "* Nota: Famores se pondrá en contacto contigo para coordinar la entrega en Metro Grecia.";
+                    "* Nota: Famores se pondrá en contacto contigo para coordinar el retiro en Avenida Egaña 1638-B, Peñalolén.";
             }
 
-            const total = state.precioBase + state.costoCaja;
+            const total = state.precioBase + state.precioMascota + state.costoCaja;
             document.getElementById("resumen-total").innerText =
                 `$${total.toLocaleString("es-CL")}`;
+
+            // Aviso temporal: productos sin link de Flow confirmado todavía
+            // (por ahora, Set Standard con Expresiones). No afecta el cálculo del total.
+            const notaPago = document.getElementById("resumen-nota-pago");
+            if (notaPago) {
+                if (state.set === "Set Standard con Expresiones") {
+                    notaPago.innerText =
+                        "* Este set aún no tiene link de pago Flow: coordinaremos tu pago directamente por WhatsApp.";
+                    notaPago.classList.remove("hidden");
+                } else {
+                    notaPago.classList.add("hidden");
+                }
+            }
         }
 
         // Función que genera el mensaje, envía datos a Python y abre WhatsApp
@@ -183,6 +292,10 @@ import MapaLocal from "../components/MapaLocal.astro";
             const direccion = document
                 .getElementById("input-direccion")
                 .value.trim();
+            const paisEl = document.getElementById("input-pais");
+            const ciudadEl = document.getElementById("input-ciudad");
+            const pais = paisEl ? paisEl.value.trim() : "";
+            const ciudad = ciudadEl ? ciudadEl.value.trim() : "";
             const metodo_pago = document.getElementById("select-pago").value;
             const tipoEntregaEl = document.querySelector(
                 'input[name="tipo_entrega"]:checked',
@@ -197,22 +310,35 @@ import MapaLocal from "../components/MapaLocal.astro";
                 mostrarError("Selecciona una modalidad de envío.");
                 return;
             }
-            if (!tipoEntregaEl) {
-                mostrarError(
-                    state.envio === "retiro"
-                        ? "Selecciona una modalidad de retiro."
-                        : "Selecciona si deseas recibir en domicilio o en sucursal.",
-                );
-                return;
-            }
-            if (state.envio !== "retiro") {
-                if (!region || !comuna) {
-                    mostrarError("Selecciona región y comuna.");
+            if (state.envio === "internacional") {
+                // Despacho internacional: no exige tipo_entrega ni datos
+                // chilenos, solo país/ciudad para poder cotizar.
+                if (!pais) {
+                    mostrarError("Selecciona el país de destino.");
                     return;
                 }
-                if (tipoEntregaEl.value === "domicilio" && !direccion) {
-                    mostrarError("Ingresa la dirección de entrega.");
+                if (!ciudad) {
+                    mostrarError("Ingresa la ciudad de destino.");
                     return;
+                }
+            } else {
+                if (!tipoEntregaEl) {
+                    mostrarError(
+                        state.envio === "retiro"
+                            ? "Selecciona una modalidad de retiro."
+                            : "Selecciona si deseas recibir en domicilio o en sucursal.",
+                    );
+                    return;
+                }
+                if (state.envio !== "retiro") {
+                    if (!region || !comuna) {
+                        mostrarError("Selecciona región y comuna.");
+                        return;
+                    }
+                    if (tipoEntregaEl.value === "domicilio" && !direccion) {
+                        mostrarError("Ingresa la dirección de entrega.");
+                        return;
+                    }
                 }
             }
             if (!nombre || !apellido || !rut || !correo || !telefono) {
@@ -234,27 +360,66 @@ import MapaLocal from "../components/MapaLocal.astro";
             btn.innerHTML = "⏳ Procesando pedido...";
 
             const tipoSetStr = state.set;
-            const total = state.precioBase + state.costoCaja;
+            const total = state.precioBase + state.precioMascota + state.costoCaja;
 
             let envioStr = "";
             if (state.envio === "starken") envioStr = "starken";
             else if (state.envio === "chilexpress") envioStr = "chilexpress";
+            else if (state.envio === "internacional") envioStr = "internacional";
             else envioStr = "retiro";
+
+            // Canal de pago real (única fuente de verdad, reutilizada abajo
+            // para Sheets y para decidir qué bloque de pago mostrar).
+            const canalPago = obtenerCanalPago(metodo_pago);
 
             // =========================================
             // 🚀 EL NUEVO PUENTE HACIA GOOGLE SHEETS
             // =========================================
+            // La hoja de Google Sheets todavía no tiene una columna dedicada
+            // para la mascota. Para no romper el esquema actual, se agrega
+            // dentro del mismo campo "tipo_set" que ya existe (campo de
+            // producto/pedido), como "<Set> + <Mascota>". Sin mascota, el
+            // campo queda igual que antes (solo el nombre del set).
+            const tipoSetParaSheets = state.mascota
+                ? `${state.set} + ${state.mascota}`
+                : state.set;
+
+            // El método de pago registrado en Sheets refleja el canal real
+            // (lo que efectivamente ve/hace el cliente), no solo el valor
+            // crudo del <select>, para no perder trazabilidad de los casos
+            // en que Flow no pudo usarse directamente.
+            const metodoPagoParaSheets = {
+                internacional: "Coordinación por WhatsApp - despacho internacional",
+                chilexpress: "Coordinación por WhatsApp - Chilexpress",
+                "flow-sin-enlace":
+                    "Coordinación por WhatsApp - Flow no disponible",
+                "flow-pedido-combinado":
+                    "Coordinación por WhatsApp - pedido combinado",
+                "flow-directo": "Link de Pago (Flow)",
+                transferencia: "Transferencia Bancaria",
+            }[canalPago];
+
+            // El esquema de Sheets no cambia: para pedidos internacionales
+            // se reutilizan los mismos campos region/comuna/direccion con
+            // país/ciudad (y dirección vacía), en vez de agregar columnas.
+            const regionParaSheets =
+                state.envio === "internacional" ? pais : region;
+            const comunaParaSheets =
+                state.envio === "internacional" ? ciudad : comuna;
+            const direccionParaSheets =
+                state.envio === "internacional" ? "" : direccion;
+
             const formData = new FormData();
             formData.append("nombre", nombre);
             formData.append("apellido", apellido);
             formData.append("rut", rut);
             formData.append("correo", correo);
             formData.append("telefono", telefono);
-            formData.append("region", region);
-            formData.append("comuna", comuna);
-            formData.append("direccion", direccion);
-            formData.append("metodo_pago", metodo_pago);
-            formData.append("tipo_set", state.set);
+            formData.append("region", regionParaSheets);
+            formData.append("comuna", comunaParaSheets);
+            formData.append("direccion", direccionParaSheets);
+            formData.append("metodo_pago", metodoPagoParaSheets);
+            formData.append("tipo_set", tipoSetParaSheets);
             formData.append("metodo_envio", envioStr);
 
             const scriptURL =
@@ -294,42 +459,77 @@ import MapaLocal from "../components/MapaLocal.astro";
 
                         const whatsappUrl = obtenerUrlWhatsApp();
 
-                        const flowLinks = {
-                            "Set Pintado":
-                                "https://www.flow.cl/btn.php?token=1uikdzp",
-                            "Set Sin Pintar":
-                                "https://www.flow.cl/btn.php?token=hqqv39f",
-                            "Set Personalizado":
-                                "https://www.flow.cl/btn.php?token=kvyqkd4",
-                            "Mascota Pintada":
-                                "https://www.flow.cl/btn.php?token=eqculpj",
-                            "Mascota sin Pintar":
-                                "https://www.flow.cl/btn.php?token=spt8moh",
-                        };
+                        // Ocultar todos los bloques de pago antes de mostrar el que
+                        // corresponde: nunca deben quedar dos bloques visibles a la vez.
+                        const bloqueFlow = document.getElementById("bloque-flow");
+                        const bloqueTransferencia = document.getElementById(
+                            "bloque-transferencia",
+                        );
+                        const bloqueChilexpress = document.getElementById(
+                            "bloque-chilexpress",
+                        );
+                        const bloqueCoordinacion = document.getElementById(
+                            "bloque-coordinacion-whatsapp",
+                        );
+                        const bloqueInternacional = document.getElementById(
+                            "bloque-internacional",
+                        );
+                        [
+                            bloqueFlow,
+                            bloqueTransferencia,
+                            bloqueChilexpress,
+                            bloqueCoordinacion,
+                            bloqueInternacional,
+                        ].forEach((bloque) => bloque && bloque.classList.add("hidden"));
 
-                        if (state.envio === "chilexpress") {
-                            const bloqueChilexpress =
-                                document.getElementById("bloque-chilexpress");
+                        // Único punto que asigna currentFlowUrl: no depende de que
+                        // cada rama recuerde limpiarla. Solo "flow-directo" recibe
+                        // una URL real; cualquier otro canal la deja vacía, así no
+                        // puede quedar un enlace residual de una selección anterior.
+                        currentFlowUrl =
+                            canalPago === "flow-directo"
+                                ? flowLinks[state.set]
+                                : "";
+
+                        // Prioridad: Internacional > Chilexpress > Flow inválido (sin
+                        // enlace o con mascota) > Flow válido > Transferencia. Un
+                        // enlace Flow solo se abre cuando cobra exactamente el total
+                        // mostrado; un pedido internacional nunca abre Flow.
+                        if (canalPago === "internacional") {
+                            if (bloqueInternacional)
+                                bloqueInternacional.classList.remove("hidden");
+                            document.getElementById(
+                                "btn-whatsapp-internacional",
+                            ).href = whatsappUrl;
+                        } else if (canalPago === "chilexpress") {
                             if (bloqueChilexpress)
                                 bloqueChilexpress.classList.remove("hidden");
                             document.getElementById(
                                 "btn-whatsapp-chilexpress",
                             ).href = whatsappUrl;
                         } else if (
-                            metodo_pago === "Link de Pago (Flow)" &&
-                            flowLinks[state.set]
+                            canalPago === "flow-sin-enlace" ||
+                            canalPago === "flow-pedido-combinado"
                         ) {
-                            const bloqueFlow =
-                                document.getElementById("bloque-flow");
-                            if (bloqueFlow)
-                                bloqueFlow.classList.remove("hidden");
-                            currentFlowUrl = flowLinks[state.set]; // Guardar globalmente
+                            const textoCoordinacion = document.getElementById(
+                                "texto-coordinacion-pago",
+                            );
+                            if (textoCoordinacion) {
+                                textoCoordinacion.textContent =
+                                    canalPago === "flow-sin-enlace"
+                                        ? "Este set todavía no cuenta con un enlace de pago Flow habilitado. Coordinaremos el pago directamente por WhatsApp."
+                                        : "Tu pedido incluye una mascota y no existe un enlace Flow configurado por el total completo. Coordinaremos el pago directamente por WhatsApp para evitar un cobro incompleto.";
+                            }
+                            if (bloqueCoordinacion)
+                                bloqueCoordinacion.classList.remove("hidden");
+                            document.getElementById(
+                                "btn-whatsapp-coordinacion",
+                            ).href = whatsappUrl;
+                        } else if (canalPago === "flow-directo") {
+                            if (bloqueFlow) bloqueFlow.classList.remove("hidden");
                             document.getElementById("btn-whatsapp-flow").href =
                                 whatsappUrl;
                         } else {
-                            const bloqueTransferencia = document.getElementById(
-                                "bloque-transferencia",
-                            );
                             if (bloqueTransferencia)
                                 bloqueTransferencia.classList.remove("hidden");
                             document.getElementById(
@@ -367,10 +567,15 @@ import MapaLocal from "../components/MapaLocal.astro";
                     envioVisual = "Starken (Envío por pagar)";
                 else if (state.envio === "chilexpress")
                     envioVisual = "Chilexpress";
-                else envioVisual = "Retiro Presencial (Metro Grecia)";
+                else if (state.envio === "internacional")
+                    envioVisual = "Despacho Internacional";
+                else envioVisual = "Retiro Presencial";
 
+                // Región/Comuna solo aplican a envíos nacionales por courier
+                // (Starken/Chilexpress). Ni retiro ni internacional los usan
+                // (internacional usa País/Ciudad, armado aparte más abajo).
                 let datosUbicacion = "";
-                if (state.envio !== "retiro") {
+                if (state.envio !== "retiro" && state.envio !== "internacional") {
                     datosUbicacion = `\n- Región: ${region || "Pendiente"}\n- Comuna: ${comuna || "Pendiente"}`;
                     if (tipoEntregaValor === "domicilio") {
                         datosUbicacion += `\n- Dirección: ${direccion || "Pendiente"}`;
@@ -378,16 +583,29 @@ import MapaLocal from "../components/MapaLocal.astro";
                 }
 
                 let saludoInicial = "";
-                if (state.envio === "chilexpress") {
+                if (canalPago === "internacional") {
+                    saludoInicial =
+                        "¡Hola Famores! Vengo desde la página web. Quiero solicitar un despacho internacional y necesito cotizar el envío antes de realizar el pago.";
+                } else if (canalPago === "chilexpress") {
                     saludoInicial =
                         "¡Hola Famores! Vengo de la página web. Quedo a la espera de la cotización del despacho por Chilexpress y del total final antes de realizar el pago.";
-                } else if (metodo_pago === "Transferencia Bancaria") {
+                } else if (canalPago === "flow-sin-enlace") {
+                    // Documentación del bloqueo: este set todavía no tiene link de Flow
+                    // habilitado, por lo que no correspondía decir "abrí el enlace de Flow".
+                    saludoInicial =
+                        "¡Hola Famores! Vengo desde la página web. Quiero encargar el Set Standard con Expresiones. Sé que este set aún no tiene link de pago Flow habilitado y quedo a la espera de coordinar el pago contigo directamente por WhatsApp.";
+                } else if (canalPago === "flow-pedido-combinado") {
+                    // El set sí tiene enlace Flow, pero ese enlace cobra un monto fijo
+                    // que no incluye la mascota agregada: coordinación manual explícita.
+                    saludoInicial =
+                        "¡Hola Famores! Vengo desde la página web. Mi pedido incluye un set y una mascota, por lo que necesito coordinar por WhatsApp el pago del total completo.";
+                } else if (canalPago === "transferencia") {
                     saludoInicial =
                         "¡Hola Famores! Vengo desde la página web. Realicé una transferencia y adjunto el comprobante para su verificación.";
                 } else {
-                    // Link de Pago (Flow): el sitio solo abrió el enlace de pago,
-                    // no puede confirmar que el pago fue aprobado (no hay
-                    // integración con la API/webhook de Flow todavía).
+                    // Link de Pago (Flow) directo y válido: el sitio solo abrió el
+                    // enlace de pago, no puede confirmar que el pago fue aprobado (no
+                    // hay integración con la API/webhook de Flow todavía).
                     saludoInicial =
                         "¡Hola Famores! Vengo desde la página web. Abrí el enlace de pago de Flow. Mi pedido queda pendiente de verificación.";
                 }
@@ -395,14 +613,47 @@ import MapaLocal from "../components/MapaLocal.astro";
                 let notaFinal = "";
                 if (state.envio === "starken") {
                     notaFinal = `\n\n*Nota:* Recuerda que el costo del envío es "Por Pagar" al momento de recibir tu paquete.`;
+                } else if (state.envio === "retiro") {
+                    notaFinal = `\n\n*Nota:* Retiro en ${DIRECCION_RETIRO}.`;
                 }
 
-                const mensaje = `${saludoInicial}
+                // Línea de mascota independiente: solo aparece si se agregó una.
+                // No reemplaza ni se mezcla con el nombre del set (tipoSetStr).
+                const lineaMascota = state.mascota
+                    ? `\n- *Mascota:* ${state.mascota}`
+                    : "";
+
+                // El despacho internacional no lleva región/comuna/dirección
+                // chilena ni "Modalidad de Entrega" (no existe tipo_entrega
+                // en ese flujo): en su lugar muestra País/Ciudad y la nota
+                // de cotización pendiente, tal como pide el formato acordado.
+                const mensaje =
+                    state.envio === "internacional"
+                        ? `${saludoInicial}
 
 Quiero encargar mis Famores:
 
-- *Pedido:* Set ${tipoSetStr}
-- *Total a transferir hoy:* $${total.toLocaleString("es-CL")}
+- *Pedido:* ${tipoSetStr}${lineaMascota}
+- *Total del pedido:* $${total.toLocaleString("es-CL")}
+- *Entrega:* Despacho Internacional
+- *País:* ${pais || "Pendiente"}
+- *Ciudad:* ${ciudad || "Pendiente"}
+
+*Nota:* Despacho internacional pendiente de cotización. El total indicado no incluye envío, courier, impuestos, aduanas ni otros cargos asociados.
+
+*Mis Datos:*
+- Nombre: ${nombre} ${apellido}
+- Rut: ${rut}
+- Correo: ${correo}
+- Teléfono: ${telefono}
+
+¡Espero mis Famores!`
+                        : `${saludoInicial}
+
+Quiero encargar mis Famores:
+
+- *Pedido:* ${tipoSetStr}${lineaMascota}
+- *Total del pedido:* $${total.toLocaleString("es-CL")}
 - *Envío preferido:* ${envioVisual}
 - *Método de Pago:* ${metodo_pago}
 
@@ -455,18 +706,60 @@ Quiero encargar mis Famores:
             const bloqueChilexpress =
                 document.getElementById("bloque-chilexpress");
             if (bloqueChilexpress) bloqueChilexpress.classList.add("hidden");
+            const bloqueCoordinacion = document.getElementById(
+                "bloque-coordinacion-whatsapp",
+            );
+            if (bloqueCoordinacion) bloqueCoordinacion.classList.add("hidden");
+            const bloqueInternacional = document.getElementById(
+                "bloque-internacional",
+            );
+            if (bloqueInternacional) bloqueInternacional.classList.add("hidden");
 
             // Resetear estados de botones internos
             document.getElementById("btn-pago-flow").classList.remove("hidden");
             document
                 .getElementById("btn-whatsapp-flow")
                 .classList.add("hidden");
+
+            // El pedido va a editarse: cualquier enlace Flow calculado para
+            // la selección anterior queda inválido hasta que se regenere.
+            currentFlowUrl = "";
         }
 
         function iniciarPagoFlow() {
-            if (currentFlowUrl) {
-                window.open(currentFlowUrl, "_blank");
+            // No confiar solo en currentFlowUrl: se recalcula el canal y el
+            // enlace en el momento del clic, para blindar contra cualquier
+            // residuo de una selección anterior (p. ej. si el set o la
+            // mascota cambiaron después de generar el pedido sin volver a
+            // pasar por el formulario).
+            const metodoPagoActual =
+                document.getElementById("select-pago")?.value || "";
+            const canalActual = obtenerCanalPago(metodoPagoActual);
+            const urlOficial = flowLinks[state.set];
+
+            const esFlowDirectoValido =
+                canalActual === "flow-directo" &&
+                Boolean(state.set) &&
+                !state.mascota &&
+                Boolean(urlOficial) &&
+                urlOficial === flowLinks[state.set];
+
+            if (!esFlowDirectoValido) {
+                // El estado actual ya no corresponde a un Flow directo
+                // válido: no se abre ninguna URL (ni la almacenada ni una
+                // improvisada) y se limpia cualquier residual.
+                currentFlowUrl = "";
+                console.warn(
+                    "Pago con Flow bloqueado: el pedido actual ya no corresponde a un enlace Flow directo válido (mascota agregada, set sin enlace, envío Chilexpress o método de pago distinto). La coordinación por WhatsApp sigue disponible.",
+                );
+                return;
             }
+
+            // Se deriva la URL desde flowLinks[state.set] en este mismo
+            // instante; nunca se abre a partir de un valor guardado sin
+            // volver a validarlo.
+            currentFlowUrl = urlOficial;
+            window.open(currentFlowUrl, "_blank");
             document.getElementById("btn-pago-flow").classList.add("hidden");
             document
                 .getElementById("btn-whatsapp-flow")
@@ -474,9 +767,11 @@ Quiero encargar mis Famores:
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Accesibilidad mínima: permitir seleccionar las tarjetas
-            // (producto / envío) con teclado, ya que son <div> con onclick.
+            // Accesibilidad mínima: permitir seleccionar con teclado las tarjetas
+            // que todavía son <div> con onclick (envío). Las tarjetas de producto
+            // ya son <button> reales y no necesitan este refuerzo.
             document.querySelectorAll(".option-card").forEach((card) => {
+                if (card.tagName === "BUTTON") return;
                 card.setAttribute("tabindex", "0");
                 card.setAttribute("role", "button");
                 card.addEventListener("keydown", (e) => {
