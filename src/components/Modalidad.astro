@@ -9,16 +9,18 @@
         > Modalidad de Entrega
     </h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-            class="option-card smooth-transition rounded-xl p-4 text-center relative"
+            class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-starken"
             onclick="selectShipping('starken')"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i class="fa-solid fa-truck-fast text-2xl text-terapia-sage mb-2"
+            <i
+                class="fa-solid fa-truck-fast text-2xl text-terapia-sage mb-2"
+                aria-hidden="true"
             ></i>
             <h4 class="font-semibold">Starken</h4>
             <p class="text-xs text-gray-500 mt-1">
@@ -27,14 +29,17 @@
         </div>
 
         <div
-            class="option-card smooth-transition rounded-xl p-4 text-center relative"
+            class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-chilexpress"
             onclick="selectShipping('chilexpress')"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i class="fa-solid fa-box text-2xl text-terapia-sage mb-2"></i>
+            <i
+                class="fa-solid fa-box text-2xl text-terapia-sage mb-2"
+                aria-hidden="true"
+            ></i>
             <h4 class="font-semibold">Chilexpress</h4>
             <p class="text-xs text-gray-500 mt-1">
                 Suma $1.500 de caja. El envío se cobra después.
@@ -42,18 +47,38 @@
         </div>
 
         <div
-            class="option-card smooth-transition rounded-xl p-4 text-center relative"
+            class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-retiro"
             onclick="selectShipping('retiro')"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i class="fa-solid fa-handshake text-2xl text-terapia-sage mb-2"
+            <i
+                class="fa-solid fa-handshake text-2xl text-terapia-sage mb-2"
+                aria-hidden="true"
             ></i>
             <h4 class="font-semibold">Retiro Presencial</h4>
             <p class="text-xs text-gray-500 mt-1">
-                Gratis. Coordinación en Metro Grecia.
+                Retiro gratuito en Avenida Egaña 1638-B, Peñalolén.
+            </p>
+        </div>
+
+        <div
+            class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
+            id="card-internacional"
+            onclick="selectShipping('internacional')"
+        >
+            <div class="absolute top-2 right-2 selected-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <i
+                class="fa-solid fa-globe text-2xl text-terapia-sage mb-2"
+                aria-hidden="true"
+            ></i>
+            <h4 class="font-semibold">Despacho Internacional</h4>
+            <p class="text-xs text-gray-500 mt-1">
+                Disponible para otros países. Se cotiza según país y ciudad.
             </p>
         </div>
     </div>
