@@ -11,7 +11,7 @@ function getFlowConfig() {
     throw new Error("Flow no está configurado: faltan FLOW_API_KEY/FLOW_SECRET_KEY.");
   }
 
-  if (!/^https:\/\/(sandbox\.)?flow\.cl\/api$/.test(apiUrl)) {
+  if (!/^https:\/\/(?:www|sandbox)\.flow\.cl\/api$/.test(apiUrl)) {
     throw new Error("FLOW_API_URL no es un endpoint permitido de Flow.");
   }
 
