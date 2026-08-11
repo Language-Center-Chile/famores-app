@@ -9,77 +9,87 @@
         > Modalidad de Entrega
     </h3>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <button
+            type="button"
+            class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
+            id="card-blue"
+            onclick="selectShipping('blue')"
+            aria-pressed="false"
+        >
+            <div class="absolute top-2 right-2 selected-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <i class="fa-solid fa-box-open text-2xl text-terapia-sage mb-2" aria-hidden="true"></i>
+            <h4 class="font-semibold">Blue Express</h4>
+            <p class="text-xs text-gray-500 mt-1">Tarifa calculada según región y comuna.</p>
+        </button>
+
+        <button
+            type="button"
             class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-starken"
             onclick="selectShipping('starken')"
+            aria-pressed="false"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i
-                class="fa-solid fa-truck-fast text-2xl text-terapia-sage mb-2"
-                aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-truck-fast text-2xl text-terapia-sage mb-2" aria-hidden="true"></i>
             <h4 class="font-semibold">Starken</h4>
-            <p class="text-xs text-gray-500 mt-1">
-                Envío por pagar. Pagas el despacho al recibir.
-            </p>
-        </div>
+            <p class="text-xs text-gray-500 mt-1">Tarifa calculada según región y comuna.</p>
+        </button>
 
-        <div
+        <button
+            type="button"
             class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-chilexpress"
             onclick="selectShipping('chilexpress')"
+            aria-pressed="false"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i
-                class="fa-solid fa-box text-2xl text-terapia-sage mb-2"
-                aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-box text-2xl text-terapia-sage mb-2" aria-hidden="true"></i>
             <h4 class="font-semibold">Chilexpress</h4>
-            <p class="text-xs text-gray-500 mt-1">
-                Suma $1.500 de caja. El envío se cobra después.
-            </p>
-        </div>
+            <p class="text-xs text-gray-500 mt-1">Tarifa calculada según región y comuna.</p>
+        </button>
 
-        <div
+        <button
+            type="button"
             class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-retiro"
             onclick="selectShipping('retiro')"
+            aria-pressed="false"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i
-                class="fa-solid fa-handshake text-2xl text-terapia-sage mb-2"
-                aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-handshake text-2xl text-terapia-sage mb-2" aria-hidden="true"></i>
             <h4 class="font-semibold">Retiro Presencial</h4>
-            <p class="text-xs text-gray-500 mt-1">
-                Retiro gratuito en Avenida Egaña 1638-B, Peñalolén.
-            </p>
-        </div>
+            <p class="text-xs text-gray-500 mt-1">Gratis en Avenida Egaña 1638-B, Peñalolén.</p>
+        </button>
 
-        <div
+        <button
+            type="button"
             class="option-card shipping-card smooth-transition rounded-xl p-4 text-center relative"
             id="card-internacional"
             onclick="selectShipping('internacional')"
+            aria-pressed="false"
         >
             <div class="absolute top-2 right-2 selected-icon">
                 <i class="fa-solid fa-circle-check"></i>
             </div>
-            <i
-                class="fa-solid fa-globe text-2xl text-terapia-sage mb-2"
-                aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-globe text-2xl text-terapia-sage mb-2" aria-hidden="true"></i>
             <h4 class="font-semibold">Despacho Internacional</h4>
-            <p class="text-xs text-gray-500 mt-1">
-                Disponible para otros países. Se cotiza según país y ciudad.
-            </p>
-        </div>
+            <p class="text-xs text-gray-500 mt-1">Se cotiza según país y ciudad.</p>
+        </button>
     </div>
 </div>
+
+<style>
+    button.shipping-card {
+        display: block;
+        text-align: center;
+    }
+</style>
