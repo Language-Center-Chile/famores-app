@@ -1,0 +1,74 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getFlowPaymentStatus } from "../../lib/flow";
+
+const token = Astro.url.searchParams.get("token") || "";
+let payment: any = null;
+let error = Astro.url.searchParams.get("error") || "";
+
+if (token) {
+  try {
+    payment = await getFlowPaymentStatus(token);
+  } catch (err) {
+    error = err instanceof Error ? err.message : "No fue posible verificar el pago.";
+  }
+}
+
+const statusInfo: Record<number, { title: string; message: string; icon: string }> = {
+  1: {
+    title: "Pago pendiente",
+    message: "Flow todavía no confirma el pago. Puedes volver a revisar en unos minutos.",
+    icon: "⏳",
+  },
+  2: {
+    title: "Pago confirmado",
+    message: "Tu pago fue confirmado por Flow. Conserva el número de orden para cualquier consulta.",
+    icon: "✅",
+  },
+  3: {
+    title: "Pago rechazado",
+    message: "El pago fue rechazado. Puedes volver al pedido e intentar nuevamente.",
+    icon: "❌",
+  },
+  4: {
+    title: "Pago anulado",
+    message: "La orden de pago fue anulada. Puedes volver al pedido y generar una nueva orden.",
+    icon: "⚠️",
+  },
+};
+
+const info = payment ? statusInfo[Number(payment.status)] : null;
+---
+
+<Layout title="Resultado de pago | FAMORES">
+  <main class="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-8">
+    {error ? (
+      <>
+        <div class="text-4xl text-center mb-3">⚠️</div>
+        <h1 class="text-2xl font-bold text-terapia-text text-center">No pudimos verificar el pago</h1>
+        <p class="text-gray-600 text-center mt-3">{error}</p>
+      </>
+    ) : info ? (
+      <>
+        <div class="text-4xl text-center mb-3">{info.icon}</div>
+        <h1 class="text-2xl font-bold text-terapia-text text-center">{info.title}</h1>
+        <p class="text-gray-600 text-center mt-3">{info.message}</p>
+        <div class="mt-6 rounded-xl bg-terapia-bg p-4 text-sm space-y-2">
+          <div class="flex justify-between gap-4"><span>Orden Famores</span><strong>{payment.commerceOrder}</strong></div>
+          <div class="flex justify-between gap-4"><span>Orden Flow</span><strong>{payment.flowOrder}</strong></div>
+          <div class="flex justify-between gap-4"><span>Monto</span><strong>${Number(payment.amount || 0).toLocaleString("es-CL")}</strong></div>
+        </div>
+      </>
+    ) : (
+      <>
+        <div class="text-4xl text-center mb-3">ℹ️</div>
+        <h1 class="text-2xl font-bold text-terapia-text text-center">Sin información de pago</h1>
+        <p class="text-gray-600 text-center mt-3">No recibimos un token de transacción para verificar.</p>
+      </>
+    )}
+
+    <a href="/" class="mt-7 w-full inline-flex items-center justify-center rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 hover:bg-terapia-sageDark smooth-transition">
+      Volver a Famores
+    </a>
+  </main>
+</Layout>
