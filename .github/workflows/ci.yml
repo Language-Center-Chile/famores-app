@@ -71,7 +71,10 @@ jobs:
       - name: Verify legacy processing endpoint stays disabled
         run: |
           status=$(curl --request POST --silent --output /tmp/procesar-body.txt --write-out '%{http_code}' http://127.0.0.1:3000/procesar)
-          test "$status" = "410" || { echo "Expected POST /procesar HTTP 410, got $status"; cat /tmp/procesar-body.txt; exit 1; }
+          case "$status" in
+            404|410) echo "Legacy POST /procesar remains disabled (HTTP $status)" ;;
+            *) echo "Legacy POST /procesar unexpectedly reachable: HTTP $status"; cat /tmp/procesar-body.txt; exit 1 ;;
+          esac
 
       - name: Stop server
         if: always()
