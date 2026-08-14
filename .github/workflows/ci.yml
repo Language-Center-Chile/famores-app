@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: famores-ci-${{ github.workflow }}-${{ github.ref }}
@@ -20,28 +20,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout PR head
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-
-      - name: Regenerate lockfile for runtime upgrade
-        if: github.event_name == 'pull_request' && github.head_ref == 'ci/release-gate-20260814'
-        run: |
-          npm install --package-lock-only
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: refresh lockfile after Astro security upgrade"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
 
       - name: Install dependencies
         run: npm ci
@@ -84,11 +70,11 @@ jobs:
 
       - name: Verify legacy processing endpoint stays disabled
         run: |
-          status=$(curl --request POST --silent --output /tmp/procesar-body.txt --write-out '%{http_code}' http://127.0.0.1:3000/procesar)
-          case "$status" in
-            404|410) echo "Legacy POST /procesar remains disabled (HTTP $status)" ;;
-            *) echo "Legacy POST /procesar unexpectedly reachable: HTTP $status"; cat /tmp/procesar-body.txt; exit 1 ;;
-          esac
+          status=$(curl --request POST \
+            --header 'Origin: http://127.0.0.1:3000' \
+            --silent --output /tmp/procesar-body.txt --write-out '%{http_code}' \
+            http://127.0.0.1:3000/procesar)
+          test "$status" = "410" || { echo "Expected same-origin POST /procesar HTTP 410, got $status"; cat /tmp/procesar-body.txt; exit 1; }
 
       - name: Stop server
         if: always()
