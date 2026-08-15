@@ -116,6 +116,10 @@ import MapaLocal from "../components/MapaLocal.astro";
                     "pointer-events-none",
                 );
 
+            // Ocultar el aviso de "elige un set primero" una vez habilitada
+            let avisoElegirSet = document.getElementById("aviso-elige-set");
+            if (avisoElegirSet) avisoElegirSet.classList.add("hidden");
+
             actualizarResumen();
         }
 
