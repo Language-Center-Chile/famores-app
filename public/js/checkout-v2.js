@@ -25,6 +25,15 @@
   const money = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
   const byId = (id) => document.getElementById(id);
 
+  function getStoredUtm() {
+    try {
+      const raw = sessionStorage.getItem("famores_utm");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
   function showError(message) {
     const el = byId("form-error-message");
     if (!el) return;
@@ -294,6 +303,11 @@
     data.append("tipo_set", checkout.pet ? `${checkout.product} + ${checkout.pet}` : checkout.product);
     data.append("metodo_envio", checkout.courier);
     data.append("total", String(quote?.total || checkout.productPrice + checkout.petPrice));
+
+    const utm = getStoredUtm();
+    Object.entries(utm).forEach(([key, value]) => {
+      if (value) data.append(key, value);
+    });
 
     fetch(SHEETS_URL, {
       method: "POST",

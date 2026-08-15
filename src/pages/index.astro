@@ -426,6 +426,18 @@ import MapaLocal from "../components/MapaLocal.astro";
             formData.append("tipo_set", tipoSetParaSheets);
             formData.append("metodo_envio", envioStr);
 
+            try {
+                const utmGuardado = sessionStorage.getItem("famores_utm");
+                if (utmGuardado) {
+                    const utm = JSON.parse(utmGuardado);
+                    Object.entries(utm).forEach(([key, value]) => {
+                        if (value) formData.append(key, value);
+                    });
+                }
+            } catch (error) {
+                console.warn("No se pudo leer la atribución UTM guardada:", error);
+            }
+
             const scriptURL =
                 "https://script.google.com/macros/s/AKfycbwfot7dNP3mb2nGjSeNJ0iR616MaNGnNvO0EbtKube_xnqggzCPAcEPRtzzkJaHGi6H/exec";
 
