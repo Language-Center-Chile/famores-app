@@ -430,8 +430,19 @@ import MapaLocal from "../components/MapaLocal.astro";
                 const utmGuardado = sessionStorage.getItem("famores_utm");
                 if (utmGuardado) {
                     const utm = JSON.parse(utmGuardado);
-                    Object.entries(utm).forEach(([key, value]) => {
-                        if (value) formData.append(key, value);
+                    // No confiar ciegamente en el contenido de sessionStorage: solo
+                    // se reenvían las 5 claves UTM esperadas, cualquier otra se descarta.
+                    const camposUtmPermitidos = [
+                        "utm_source",
+                        "utm_medium",
+                        "utm_campaign",
+                        "utm_content",
+                        "utm_term",
+                    ];
+                    camposUtmPermitidos.forEach((campo) => {
+                        if (typeof utm[campo] === "string" && utm[campo]) {
+                            formData.append(campo, utm[campo]);
+                        }
                     });
                 }
             } catch (error) {

@@ -36,14 +36,16 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 			// nuevo, así una navegación interna sin params no borra el origen
 			// original del lead dentro de la misma sesión.
 			(function captureUtm() {
+				const MAX_LENGTH = 200;
 				const params = new URLSearchParams(window.location.search);
 				if (!params.has("utm_source")) return;
+				const clip = (value) => (value || "").slice(0, MAX_LENGTH);
 				const utm = {
-					utm_source: params.get("utm_source") || "",
-					utm_medium: params.get("utm_medium") || "",
-					utm_campaign: params.get("utm_campaign") || "",
-					utm_content: params.get("utm_content") || "",
-					utm_term: params.get("utm_term") || "",
+					utm_source: clip(params.get("utm_source")),
+					utm_medium: clip(params.get("utm_medium")),
+					utm_campaign: clip(params.get("utm_campaign")),
+					utm_content: clip(params.get("utm_content")),
+					utm_term: clip(params.get("utm_term")),
 				};
 				try {
 					sessionStorage.setItem("famores_utm", JSON.stringify(utm));

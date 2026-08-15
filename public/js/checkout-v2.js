@@ -25,10 +25,19 @@
   const money = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
   const byId = (id) => document.getElementById(id);
 
+  const UTM_FIELDS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+
   function getStoredUtm() {
     try {
       const raw = sessionStorage.getItem("famores_utm");
-      return raw ? JSON.parse(raw) : {};
+      const parsed = raw ? JSON.parse(raw) : {};
+      // No confiar ciegamente en el contenido de sessionStorage: solo se
+      // reenvían las 5 claves UTM esperadas, cualquier otra se descarta.
+      const safe = {};
+      UTM_FIELDS.forEach((field) => {
+        if (typeof parsed[field] === "string") safe[field] = parsed[field];
+      });
+      return safe;
     } catch {
       return {};
     }
