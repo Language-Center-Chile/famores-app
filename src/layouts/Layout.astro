@@ -8,8 +8,14 @@ interface Props {
 
 const { title = "Cotizador FAMORES" } = Astro.props;
 const description = "Diseña tu set de herramientas terapéuticas sistémicas de forma personalizada.";
-const canonicalUrl = new URL(Astro.url.pathname, Astro.url.origin);
-const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", Astro.url.origin);
+// Astro.url.origin no es confiable detrás de un proxy reverso (Coolify):
+// @astrojs/node deriva el protocolo del socket TCP crudo (req.socket.encrypted),
+// no de X-Forwarded-Proto, así que detrás de un proxy que termina TLS siempre
+// resolvería "http://" aunque el sitio público sea HTTPS. Astro.site (configurado
+// en astro.config.mjs) es la fuente correcta para canonical/og:image.
+const siteBase = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, siteBase);
+const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 ---
 
 <!doctype html>
