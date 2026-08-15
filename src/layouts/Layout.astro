@@ -7,6 +7,15 @@ interface Props {
 }
 
 const { title = "Cotizador FAMORES" } = Astro.props;
+const description = "Diseña tu set de herramientas terapéuticas sistémicas de forma personalizada.";
+// Astro.url.origin no es confiable detrás de un proxy reverso (Coolify):
+// @astrojs/node deriva el protocolo del socket TCP crudo (req.socket.encrypted),
+// no de X-Forwarded-Proto, así que detrás de un proxy que termina TLS siempre
+// resolvería "http://" aunque el sitio público sea HTTPS. Astro.site (configurado
+// en astro.config.mjs) es la fuente correcta para canonical/og:image.
+const siteBase = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, siteBase);
+const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 ---
 
 <!doctype html>
@@ -18,13 +27,35 @@ const { title = "Cotizador FAMORES" } = Astro.props;
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
+
+		<script is:inline>
+			// Captura de atribución: guarda los utm_* de la URL de llegada en
+			// sessionStorage. Solo se sobrescribe cuando la URL trae utm_source
+			// nuevo, así una navegación interna sin params no borra el origen
+			// original del lead dentro de la misma sesión.
+			(function captureUtm() {
+				const params = new URLSearchParams(window.location.search);
+				if (!params.has("utm_source")) return;
+				const utm = {
+					utm_source: params.get("utm_source") || "",
+					utm_medium: params.get("utm_medium") || "",
+					utm_campaign: params.get("utm_campaign") || "",
+					utm_content: params.get("utm_content") || "",
+					utm_term: params.get("utm_term") || "",
+				};
+				try {
+					sessionStorage.setItem("famores_utm", JSON.stringify(utm));
+				} catch (error) {
+					console.warn("No se pudo guardar la atribución UTM:", error);
+				}
+			})();
+		</script>
 
 		<meta property="og:title" content="Famores - Herramientas Sistémicas" />
-		<meta
-			property="og:description"
-			content="Diseña tu set de herramientas terapéuticas sistémicas de forma personalizada."
-		/>
-		<meta property="og:image" content="URL_DE_UNA_FOTO_DE_LOS_PALITOS" />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImageUrl} />
 		<meta property="og:type" content="website" />
 
 		<script is:inline src="https://cdn.tailwindcss.com"></script>

@@ -38,6 +38,12 @@ jobs:
       - name: Check checkout client syntax
         run: node --check public/js/checkout-v2.js
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
       - name: Build
         run: npm run build
 
