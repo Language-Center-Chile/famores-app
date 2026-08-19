@@ -23,6 +23,19 @@ describe("Famores flexible cart", () => {
     expect(result.total).toBe(57500);
   });
 
+  it("adds configured shipping and one box for a domestic courier", () => {
+    const result = calculateCartOrder({
+      items: [{ product: "Mascota Sin Pintar", quantity: 2 }],
+      courier: "blue",
+      region: "Metropolitana de Santiago",
+      commune: "Peñalolén",
+    });
+    expect(result.subtotal).toBe(5000);
+    expect(result.shippingPrice).toBe(3490);
+    expect(result.boxPrice).toBe(1500);
+    expect(result.total).toBe(9990);
+  });
+
   it("aggregates duplicate product lines", () => {
     const items = normalizeCartItems([
       { product: "Set Standard Pintado", quantity: 1 },
