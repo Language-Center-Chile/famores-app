@@ -1,0 +1,259 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const products = [
+  { slug: "set-standard-pintado", name: "Set Standard Pintado", price: 39990, image: "/images/products/set-standard-pintado.webp" },
+  { slug: "set-standard-con-expresiones", name: "Set Standard con Expresiones", price: 42990, image: "/images/products/set-standard-con-expresiones.webp" },
+  { slug: "set-sin-pintar", name: "Set Sin Pintar", price: 25000, image: "/images/products/set-sin-pintar-1.jpg" },
+  { slug: "set-personalizado", name: "Set Personalizado", price: 45000, image: "/images/products/set-personalizado-aymara.webp" },
+  { slug: "mascota-pintada", name: "Mascota Pintada", price: 4500, image: "/images/products/mascota-pintada-2.jpg" },
+  { slug: "mascota-sin-pintar", name: "Mascota Sin Pintar", price: 2500, image: "/images/products/mascota-sin-pintar-1.jpg" },
+];
+
+const regions = [
+  "Arica y Parinacota", "Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso",
+  "Metropolitana de Santiago", "Libertador Gral. Bernardo O'Higgins", "Maule", "Ñuble", "Biobío",
+  "Araucanía", "Los Ríos", "Los Lagos", "Aysén", "Magallanes y de la Antártica Chilena",
+];
+---
+
+<Layout title="Comprar Famores">
+  <main class="max-w-6xl mx-auto px-4 py-10 md:py-16">
+    <header class="max-w-3xl mb-10">
+      <a href="/" class="text-sm font-semibold text-terapia-sageDark hover:underline">← Volver a Famores</a>
+      <h1 class="text-3xl md:text-4xl font-bold text-terapia-text mt-4">Arma tu pedido</h1>
+      <p class="text-gray-600 mt-3">
+        Compra el producto que quieras, sin depender de un set principal. Puedes llevar sólo mascotas,
+        combinar productos y agregar varias unidades de cada uno.
+      </p>
+    </header>
+
+    <div class="grid lg:grid-cols-[1.5fr_0.9fr] gap-8 items-start">
+      <section>
+        <h2 class="text-xl font-bold text-terapia-text mb-4">Productos</h2>
+        <div class="grid sm:grid-cols-2 gap-5">
+          {products.map((product) => (
+            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm overflow-hidden" data-product={product.name} data-slug={product.slug} data-price={product.price}>
+              <div class="aspect-[4/3] bg-terapia-bg flex items-center justify-center overflow-hidden">
+                <img src={product.image} alt={product.name} class="w-full h-full object-contain" loading="lazy" />
+              </div>
+              <div class="p-5">
+                <h3 class="font-semibold text-lg text-terapia-text">{product.name}</h3>
+                <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")}</p>
+                <div class="mt-4 flex items-center justify-between gap-3">
+                  <span class="text-sm font-medium text-gray-600">Cantidad</span>
+                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden">
+                    <button type="button" class="qty-minus px-3 py-2 font-bold" aria-label={`Quitar ${product.name}`}>−</button>
+                    <input class="qty-input w-12 text-center border-0 outline-none" type="number" min="0" max="20" value="0" aria-label={`Cantidad de ${product.name}`} />
+                    <button type="button" class="qty-plus px-3 py-2 font-bold" aria-label={`Agregar ${product.name}`}>+</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <aside class="lg:sticky lg:top-5 rounded-2xl bg-white border border-stone-100 shadow-sm p-6">
+        <h2 class="text-xl font-bold text-terapia-text">Tu pedido</h2>
+        <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700">
+          <p id="empty-cart">Aún no agregas productos.</p>
+        </div>
+
+        <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
+          <label class="block text-sm font-semibold text-terapia-text" for="courier">Entrega</label>
+          <select id="courier" class="w-full rounded-xl border border-stone-200 px-3 py-3 bg-white">
+            <option value="retiro">Retiro presencial</option>
+            <option value="blue">Blue Express</option>
+            <option value="starken">Starken</option>
+            <option value="chilexpress">Chilexpress</option>
+          </select>
+
+          <div id="shipping-destination" class="hidden space-y-3">
+            <label class="block text-sm font-semibold text-terapia-text" for="region">Región</label>
+            <select id="region" class="w-full rounded-xl border border-stone-200 px-3 py-3 bg-white">
+              <option value="">Selecciona región</option>
+              {regions.map((region) => <option value={region}>{region}</option>)}
+            </select>
+            <label class="block text-sm font-semibold text-terapia-text" for="commune">Comuna</label>
+            <input id="commune" type="text" class="w-full rounded-xl border border-stone-200 px-3 py-3" placeholder="Ej. Peñalolén" />
+          </div>
+        </div>
+
+        <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-name">Nombre</label>
+          <input id="customer-name" type="text" class="w-full rounded-xl border border-stone-200 px-3 py-3" autocomplete="name" />
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
+          <input id="customer-email" type="email" class="w-full rounded-xl border border-stone-200 px-3 py-3" autocomplete="email" />
+        </div>
+
+        <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
+          <div class="flex justify-between"><span>Productos</span><strong id="subtotal">$0</strong></div>
+          <div class="flex justify-between"><span>Despacho</span><strong id="shipping">$0</strong></div>
+          <div class="flex justify-between"><span>Caja</span><strong id="box">$0</strong></div>
+          <div class="flex justify-between text-lg pt-2"><span class="font-bold">Total</span><strong id="total">$0</strong></div>
+        </div>
+
+        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm"></p>
+        <button id="pay-button" type="button" class="w-full mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3.5 px-4 disabled:opacity-50" disabled>
+          Pagar con Flow
+        </button>
+        <p class="text-xs text-gray-500 mt-3">El total se recalcula en el servidor antes de crear el pago. Las claves de Flow no se exponen en el navegador.</p>
+      </aside>
+    </div>
+  </main>
+
+  <script is:inline>
+    const money = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
+    const cards = Array.from(document.querySelectorAll("[data-product]"));
+    const courierEl = document.getElementById("courier");
+    const regionEl = document.getElementById("region");
+    const communeEl = document.getElementById("commune");
+    const destinationEl = document.getElementById("shipping-destination");
+    const errorEl = document.getElementById("cart-error");
+    const payButton = document.getElementById("pay-button");
+    let lastQuote = null;
+    let quoteTimer = null;
+
+    function getItems() {
+      return cards.flatMap((card) => {
+        const quantity = Number(card.querySelector(".qty-input").value || 0);
+        return quantity > 0 ? [{ product: card.dataset.product, quantity }] : [];
+      });
+    }
+
+    function showError(message) {
+      if (!message) {
+        errorEl.classList.add("hidden");
+        errorEl.textContent = "";
+        return;
+      }
+      errorEl.textContent = message;
+      errorEl.classList.remove("hidden");
+    }
+
+    function renderLines(items) {
+      const container = document.getElementById("cart-lines");
+      if (!items.length) {
+        container.innerHTML = '<p id="empty-cart">Aún no agregas productos.</p>';
+        return;
+      }
+      container.innerHTML = items
+        .map((item) => `<div class="flex justify-between gap-3"><span>${item.quantity} × ${item.product}</span><strong>${money(item.lineTotal)}</strong></div>`)
+        .join("");
+    }
+
+    async function refreshQuote() {
+      const items = getItems();
+      renderLines(items.map((item) => ({ ...item, lineTotal: 0 })));
+      lastQuote = null;
+      payButton.disabled = true;
+      showError("");
+
+      if (!items.length) {
+        document.getElementById("subtotal").textContent = "$0";
+        document.getElementById("shipping").textContent = "$0";
+        document.getElementById("box").textContent = "$0";
+        document.getElementById("total").textContent = "$0";
+        return;
+      }
+
+      const courier = courierEl.value;
+      const region = regionEl.value.trim();
+      const commune = communeEl.value.trim();
+      if (courier !== "retiro" && (!region || !commune)) {
+        renderLines(items.map((item) => ({ ...item, lineTotal: 0 })));
+        showError("Selecciona región e ingresa comuna para calcular el despacho.");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/cart/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, courier, region, commune }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No fue posible calcular el pedido.");
+        lastQuote = data;
+        renderLines(data.items);
+        document.getElementById("subtotal").textContent = money(data.subtotal);
+        document.getElementById("shipping").textContent = money(data.shippingPrice);
+        document.getElementById("box").textContent = money(data.boxPrice);
+        document.getElementById("total").textContent = money(data.total);
+        payButton.disabled = false;
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "No fue posible calcular el pedido.");
+      }
+    }
+
+    function scheduleQuote() {
+      clearTimeout(quoteTimer);
+      quoteTimer = setTimeout(refreshQuote, 180);
+    }
+
+    cards.forEach((card) => {
+      const input = card.querySelector(".qty-input");
+      card.querySelector(".qty-minus").addEventListener("click", () => {
+        input.value = String(Math.max(0, Number(input.value || 0) - 1));
+        scheduleQuote();
+      });
+      card.querySelector(".qty-plus").addEventListener("click", () => {
+        input.value = String(Math.min(20, Number(input.value || 0) + 1));
+        scheduleQuote();
+      });
+      input.addEventListener("input", () => {
+        const value = Math.max(0, Math.min(20, Math.floor(Number(input.value || 0))));
+        input.value = String(value);
+        scheduleQuote();
+      });
+    });
+
+    courierEl.addEventListener("change", () => {
+      destinationEl.classList.toggle("hidden", courierEl.value === "retiro");
+      scheduleQuote();
+    });
+    regionEl.addEventListener("change", scheduleQuote);
+    communeEl.addEventListener("input", scheduleQuote);
+
+    payButton.addEventListener("click", async () => {
+      if (!lastQuote) return;
+      const name = document.getElementById("customer-name").value.trim();
+      const email = document.getElementById("customer-email").value.trim();
+      if (!name) return showError("Ingresa tu nombre.");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Ingresa un correo válido.");
+
+      payButton.disabled = true;
+      payButton.textContent = "Creando pago…";
+      showError("");
+      try {
+        const response = await fetch("/api/flow/create-cart-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: getItems(),
+            courier: courierEl.value,
+            region: regionEl.value.trim(),
+            commune: communeEl.value.trim(),
+            name,
+            email,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
+        window.location.href = data.checkoutUrl;
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "No fue posible crear el pago.");
+        payButton.disabled = false;
+        payButton.textContent = "Pagar con Flow";
+      }
+    });
+
+    const preselected = new URLSearchParams(window.location.search).get("add");
+    if (preselected) {
+      const card = cards.find((candidate) => candidate.dataset.slug === preselected);
+      if (card) card.querySelector(".qty-input").value = "1";
+    }
+    refreshQuote();
+  </script>
+</Layout>
