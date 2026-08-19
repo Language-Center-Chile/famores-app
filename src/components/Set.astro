@@ -3,61 +3,49 @@ const setsPrincipales = [
     {
         id: "set-standard-pintado",
         nombre: "Set Standard Pintado",
-        precio: 39990,
         precioTexto: "$39.990",
         imagen: "/images/products/set-standard-pintado.webp",
         alt: "Set Standard Pintado de Famores",
         ancho: 1400,
         alto: 1050,
-        descripcion:
-            "Set de 14 figuras pintadas a mano, con terminación standard y rostros neutros.",
+        descripcion: "Set de 14 figuras pintadas a mano, con terminación standard y rostros neutros.",
         contenido: "Incluye 14 figuras en cuatro tamaños.",
-        boton: "Elegir este set",
         nota: null,
     },
     {
         id: "set-standard-con-expresiones",
         nombre: "Set Standard con Expresiones",
-        precio: 42990,
         precioTexto: "$42.990",
         imagen: "/images/products/set-standard-con-expresiones.webp",
         alt: "Set Standard con Expresiones de Famores",
         ancho: 1440,
         alto: 1168,
-        descripcion:
-            "Set de 14 figuras pintadas a mano con expresiones faciales que amplían las posibilidades de representación.",
+        descripcion: "Set de 14 figuras pintadas a mano con expresiones faciales que amplían las posibilidades de representación.",
         contenido: "Incluye 14 figuras en cuatro tamaños.",
-        boton: "Elegir este set",
         nota: null,
     },
     {
         id: "set-sin-pintar",
         nombre: "Set Sin Pintar",
-        precio: 25000,
         precioTexto: "$25.000",
         imagen: "/images/products/set-sin-pintar-1.jpg",
         alt: "Set Sin Pintar de Famores",
         ancho: 1440,
         alto: 1080,
-        descripcion:
-            "Set de 14 figuras en madera natural, preparado para pintar, intervenir o utilizar sin terminación de color.",
+        descripcion: "Set de 14 figuras en madera natural, preparado para pintar, intervenir o utilizar sin terminación de color.",
         contenido: "Incluye 14 figuras en cuatro tamaños.",
-        boton: "Elegir este set",
         nota: null,
     },
     {
         id: "set-personalizado",
         nombre: "Set Personalizado",
-        precio: 45000,
         precioTexto: "$45.000",
         imagen: "/images/products/set-personalizado-aymara.webp",
         alt: "Set Personalizado de Famores",
         ancho: 899,
         alto: 899,
-        descripcion:
-            "Set de 14 figuras elaborado a pedido, basado en una fotografía familiar, la representación de un pueblo originario o características específicas solicitadas por el cliente.",
+        descripcion: "Set de 14 figuras elaborado a pedido, basado en una fotografía familiar, la representación de un pueblo originario o características específicas solicitadas por el cliente.",
         contenido: "Mantiene siempre las 14 figuras y sus cuatro tamaños.",
-        boton: "Solicitar este set",
         nota: "Imagen referencial. El diseño se desarrolla según la solicitud del cliente.",
     },
 ];
@@ -66,171 +54,80 @@ const mascotas = [
     {
         id: "mascota-pintada",
         nombre: "Mascota Pintada",
-        precio: 4500,
         precioTexto: "$4.500",
         imagen: "/images/products/mascota-pintada-2.jpg",
         alt: "Mascota Pintada de Famores",
         ancho: 1080,
         alto: 810,
         descripcion: "Mascota de madera pintada a mano. Valor por cada unidad.",
-        pendiente: false,
     },
     {
         id: "mascota-sin-pintar",
         nombre: "Mascota Sin Pintar",
-        precio: 2500,
         precioTexto: "$2.500",
         imagen: "/images/products/mascota-sin-pintar-1.jpg",
         alt: "Mascota Sin Pintar de Famores",
         ancho: 1080,
         alto: 1098,
         descripcion: "Mascota de madera natural, sin pintar. Valor por unidad.",
-        pendiente: false,
     },
 ];
 ---
 
 <section class="max-w-6xl mx-auto px-4 py-12 md:py-16">
     <div class="text-center max-w-2xl mx-auto mb-10">
-        <span
-            class="bg-terapia-sage text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-sm mb-3"
-            >1</span
-        >
-        <h2 class="text-2xl md:text-3xl font-bold text-terapia-text">
-            Elige tu set Famores
-        </h2>
-        <p class="text-gray-500 mt-3 pr-16 sm:pr-0">
-            Cada set incluye 14 figuras elaboradas para representar vínculos,
-            familias y diferentes configuraciones humanas. Elige la
-            alternativa que mejor se adapte a tu trabajo o propósito.
+        <span class="bg-terapia-sage text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-sm mb-3">1</span>
+        <h2 class="text-2xl md:text-3xl font-bold text-terapia-text">Elige tus productos Famores</h2>
+        <p class="text-gray-500 mt-3">
+            Puedes comprar un set, varios sets, sólo mascotas o combinar productos. En el carrito eliges la cantidad de cada uno.
         </p>
+        <a href="/comprar" class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-terapia-sageDark text-white font-semibold py-3 px-5">
+            Ver carrito completo <i class="fa-solid fa-cart-shopping text-xs"></i>
+        </a>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-        {
-            setsPrincipales.map((producto) => (
-                <button
-                    type="button"
-                    class="option-card set-card smooth-transition rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative h-full"
-                    id={`card-${producto.id}`}
-                    onclick={`selectSet('${producto.nombre}', ${producto.precio})`}
-                    aria-pressed="false"
-                >
-                    <div class="absolute top-3 right-3 selected-icon bg-white/95 text-terapia-sageDark rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1 shadow-sm z-10">
-                        <i class="fa-solid fa-circle-check"></i> Set seleccionado
+        {setsPrincipales.map((producto) => (
+            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative h-full">
+                <div class="w-full aspect-[4/3] bg-terapia-bg overflow-hidden flex items-center justify-center">
+                    <img src={producto.imagen} alt={producto.alt} width={producto.ancho} height={producto.alto} loading="lazy" class="max-w-full max-h-full object-contain" />
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                    <h3 class="font-semibold text-lg text-terapia-text leading-tight">{producto.nombre}</h3>
+                    <p class="text-2xl font-bold text-terapia-sageDark mt-1 mb-2">{producto.precioTexto}</p>
+                    <p class="text-sm text-gray-500">{producto.descripcion}</p>
+                    <p class="text-xs font-medium text-terapia-wood mt-2">{producto.contenido}</p>
+                    <div class="mt-3 min-h-[2.75rem]">
+                        {producto.nota && <p class="text-xs italic text-terapia-wood bg-terapia-woodLight/15 rounded-lg px-3 py-2">{producto.nota}</p>}
                     </div>
-
-                    <div class="w-full aspect-[4/3] bg-terapia-bg overflow-hidden flex items-center justify-center">
-                        <img
-                            src={producto.imagen}
-                            alt={producto.alt}
-                            width={producto.ancho}
-                            height={producto.alto}
-                            loading="lazy"
-                            class="max-w-full max-h-full object-contain"
-                        />
-                    </div>
-
-                    <div class="p-5 flex flex-col flex-1">
-                        <h3 class="font-semibold text-lg text-terapia-text leading-tight">
-                            {producto.nombre}
-                        </h3>
-                        <p class="text-2xl font-bold text-terapia-sageDark mt-1 mb-2">
-                            {producto.precioTexto}
-                        </p>
-                        <p class="text-sm text-gray-500">{producto.descripcion}</p>
-                        <p class="text-xs font-medium text-terapia-wood mt-2">
-                            {producto.contenido}
-                        </p>
-
-                        <div class="mt-3 min-h-[2.75rem]">
-                            {producto.nota && (
-                                <p class="text-xs italic text-terapia-wood bg-terapia-woodLight/15 rounded-lg px-3 py-2">
-                                    {producto.nota}
-                                </p>
-                            )}
-                        </div>
-
-                        <span class="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 text-sm">
-                            {producto.boton}
-                            <i class="fa-solid fa-arrow-right text-xs"></i>
-                        </span>
-                    </div>
-                </button>
-            ))
-        }
+                    <a href={`/comprar?add=${producto.id}`} class="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 text-sm">
+                        Agregar al carrito <i class="fa-solid fa-cart-plus text-xs"></i>
+                    </a>
+                </div>
+            </article>
+        ))}
     </div>
 
     <div class="text-center max-w-xl mx-auto mt-16 mb-8">
-        <h3 class="text-xl md:text-2xl font-bold text-terapia-text">
-            Agrega mascotas a tu set
-        </h3>
-        <p class="text-gray-500 mt-2 text-sm">
-            Complementos opcionales para sumar a tu Famor.
-        </p>
+        <h3 class="text-xl md:text-2xl font-bold text-terapia-text">Mascotas Famores</h3>
+        <p class="text-gray-500 mt-2 text-sm">Son productos independientes: no necesitas comprar un set para llevarlas.</p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto items-stretch">
-        {
-            mascotas.map((producto) => (
-                <button
-                    type="button"
-                    class="option-card mascota-card smooth-transition rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative"
-                    id={`card-${producto.id}`}
-                    onclick={`selectMascota('${producto.nombre}', ${producto.precio})`}
-                    aria-pressed="false"
-                >
-                    <div class="absolute top-3 right-3 selected-icon bg-white/95 text-terapia-sageDark rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1 shadow-sm z-10">
-                        <i class="fa-solid fa-circle-check"></i> Mascota agregada
-                    </div>
-
-                    {producto.imagen ? (
-                        <div class="w-full aspect-[4/3] bg-terapia-bg overflow-hidden flex items-center justify-center">
-                            <img
-                                src={producto.imagen}
-                                alt={producto.alt}
-                                width={producto.ancho}
-                                height={producto.alto}
-                                loading="lazy"
-                                class="max-w-full max-h-full object-contain"
-                            />
-                        </div>
-                    ) : (
-                        <div class="w-full aspect-[4/3] bg-terapia-bg overflow-hidden flex flex-col items-center justify-center gap-2 text-terapia-woodLight">
-                            <i class="fa-solid fa-dog text-5xl"></i>
-                            <span class="text-xs font-medium text-terapia-text/60">
-                                Foto pendiente
-                            </span>
-                        </div>
-                    )}
-
-                    <div class="p-5 flex flex-col flex-1">
-                        <h4 class="font-semibold text-lg text-terapia-text leading-tight">
-                            {producto.nombre}
-                        </h4>
-                        <p class="text-xl font-bold text-terapia-sageDark mt-1 mb-2">
-                            {producto.precioTexto}
-                        </p>
-                        <p class="text-sm text-gray-500">{producto.descripcion}</p>
-
-                        <span class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-woodLight/40 text-terapia-wood font-semibold py-2.5 px-4 text-sm">
-                            Agregar
-                        </span>
-                    </div>
-                </button>
-            ))
-        }
+        {mascotas.map((producto) => (
+            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm text-left flex flex-col overflow-hidden relative">
+                <div class="w-full aspect-[4/3] bg-terapia-bg overflow-hidden flex items-center justify-center">
+                    <img src={producto.imagen} alt={producto.alt} width={producto.ancho} height={producto.alto} loading="lazy" class="max-w-full max-h-full object-contain" />
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                    <h4 class="font-semibold text-lg text-terapia-text leading-tight">{producto.nombre}</h4>
+                    <p class="text-xl font-bold text-terapia-sageDark mt-1 mb-2">{producto.precioTexto}</p>
+                    <p class="text-sm text-gray-500">{producto.descripcion}</p>
+                    <a href={`/comprar?add=${producto.id}`} class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-woodLight/40 text-terapia-wood font-semibold py-2.5 px-4 text-sm">
+                        Comprar / agregar <i class="fa-solid fa-cart-plus text-xs"></i>
+                    </a>
+                </div>
+            </article>
+        ))}
     </div>
 </section>
-
-<style>
-    /* Layout.astro define "button.option-card { display: block; }" para
-       resetear el <button> nativo; esa regla, por especificidad (elemento +
-       clase), gana sobre la utilidad ".flex" de Tailwind y anulaba el
-       layout en columna que necesitan estas tarjetas para que el botón
-       quede alineado al final mediante margin-top: auto. Se restablece acá,
-       específico a las tarjetas de set, sin tocar el reset global. */
-    button.set-card {
-        display: flex;
-    }
-</style>
