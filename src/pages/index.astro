@@ -9,17 +9,19 @@ import MapaLocal from "../components/MapaLocal.astro";
 ---
 
 <Layout title="Cotizador FAMORES">
-    <Hero />
+    <main id="contenido-principal">
+        <Hero />
 
-    <Set />
+        <Set />
 
-    <ComposicionSet />
+        <ComposicionSet />
 
-    <div class="max-w-3xl mx-auto space-y-8 px-4 pb-12 mt-4">
-        <Modalidad />
-        <MapaLocal />
-        <Datos />
-    </div>
+        <div class="max-w-3xl mx-auto space-y-8 px-4 pb-12 mt-4">
+            <Modalidad />
+            <MapaLocal />
+            <Datos />
+        </div>
+    </main>
 
     <script is:inline>
         // Variables de estado
