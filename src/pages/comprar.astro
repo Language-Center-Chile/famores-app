@@ -114,6 +114,7 @@ const regions = [
     const payButton = document.getElementById("pay-button");
     let lastQuote = null;
     let quoteTimer = null;
+    let quoteRequestId = 0;
 
     function getItems() {
       return cards.flatMap((card) => {
@@ -144,6 +145,7 @@ const regions = [
     }
 
     async function refreshQuote() {
+      const requestId = ++quoteRequestId;
       const items = getItems();
       renderLines(items.map((item) => ({ ...item, lineTotal: 0 })));
       lastQuote = null;
@@ -174,6 +176,7 @@ const regions = [
           body: JSON.stringify({ items, courier, region, commune }),
         });
         const data = await response.json();
+        if (requestId !== quoteRequestId) return;
         if (!response.ok) throw new Error(data.error || "No fue posible calcular el pedido.");
         lastQuote = data;
         renderLines(data.items);
@@ -183,6 +186,7 @@ const regions = [
         document.getElementById("total").textContent = money(data.total);
         payButton.disabled = false;
       } catch (error) {
+        if (requestId !== quoteRequestId) return;
         showError(error instanceof Error ? error.message : "No fue posible calcular el pedido.");
       }
     }
