@@ -33,6 +33,18 @@ describe("Famores flexible cart", () => {
     expect(result.total).toBe(9990);
   });
 
+  it("keeps international shipping pending and charges only products plus box", () => {
+    const result = calculateCartOrder({
+      items: [{ product: "Mascota Pintada", quantity: 1 }],
+      courier: "international",
+    });
+    expect(result.subtotal).toBe(4500);
+    expect(result.shippingPrice).toBe(0);
+    expect(result.boxPrice).toBe(1500);
+    expect(result.total).toBe(6000);
+    expect(result.shippingPending).toBe(true);
+  });
+
   it("aggregates duplicate product lines", () => {
     const items = normalizeCartItems([
       { product: "Set Standard Pintado", quantity: 1 },

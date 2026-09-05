@@ -49,9 +49,23 @@ export function normalizeCartItems(items: CartItemInput[]) {
 export function calculateCartOrder(selection: CartSelection) {
   const items = normalizeCartItems(selection.items);
   const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+
   if (selection.courier === "retiro") {
-    return { items, subtotal, shippingPrice: 0, boxPrice: 0, total: subtotal, courierLabel: "Retiro presencial" };
+    return { items, subtotal, shippingPrice: 0, boxPrice: 0, total: subtotal, courierLabel: "Retiro presencial", shippingPending: false };
   }
+
+  if (selection.courier === "international") {
+    return {
+      items,
+      subtotal,
+      shippingPrice: 0,
+      boxPrice: BOX_PRICE,
+      total: subtotal + BOX_PRICE,
+      courierLabel: "Envío internacional — por cotizar",
+      shippingPending: true,
+    };
+  }
+
   const shippingPrice = getShippingRate(selection.courier, selection.region || "", selection.commune || "");
   if (shippingPrice === null) throw new Error("Destino o courier sin tarifa configurada.");
   const courier = selection.courier as DomesticCourier;
@@ -62,5 +76,6 @@ export function calculateCartOrder(selection: CartSelection) {
     boxPrice: BOX_PRICE,
     total: subtotal + shippingPrice + BOX_PRICE,
     courierLabel: COURIER_LABELS[courier],
+    shippingPending: false,
   };
 }
