@@ -13,6 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
     const email = clean(body.email).toLowerCase();
     const name = clean(body.name, 120);
     const lastName = clean(body.lastName, 120);
+    const customerId = clean(body.customerId, 40);
     const courier = clean(body.courier, 30);
     const region = clean(body.region);
     const commune = clean(body.commune);
@@ -24,6 +25,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if (!lastName) {
       return Response.json({ error: "Apellido no válido." }, { status: 400 });
+    }
+    if (!customerId) {
+      return Response.json({ error: "RUT/DNI no válido." }, { status: 400 });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json({ error: "Correo de pago no válido." }, { status: 400 });
@@ -73,6 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
       customer: {
         firstName: name,
         lastName,
+        customerId,
         fullName: `${name} ${lastName}`.trim(),
         email,
       },
@@ -102,7 +107,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error) {
     console.error("[Flow create-cart-payment]", error instanceof Error ? error.message : error);
     const message = error instanceof Error ? error.message : "No fue posible crear el pago.";
-    const status = /no válido|sin tarifa|Destino|Producto|Cantidad|Carrito|Agrega|dirección|sucursal|Nombre|Apellido/.test(message) ? 400 : 502;
+    const status = /no válido|sin tarifa|Destino|Producto|Cantidad|Carrito|Agrega|dirección|sucursal|Nombre|Apellido|RUT\/DNI/.test(message) ? 400 : 502;
     return Response.json({ error: message }, { status });
   }
 };
