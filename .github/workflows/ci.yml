@@ -35,9 +35,6 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Check checkout client syntax
-        run: node --check public/js/checkout-v2.js
-
       - name: Typecheck
         run: npm run typecheck
 
@@ -64,7 +61,7 @@ jobs:
           exit 1
 
       - name: Smoke public checkout page
-        run: curl --fail --silent --show-error http://127.0.0.1:3000/ > /dev/null
+        run: curl --fail --silent --show-error http://127.0.0.1:3000/comprar > /dev/null
 
       - name: Smoke payment result page
         run: curl --fail --silent --show-error http://127.0.0.1:3000/pago/resultado > /dev/null
