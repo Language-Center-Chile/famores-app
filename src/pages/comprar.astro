@@ -30,9 +30,10 @@ const regions = [
         <h2 id="productos-heading" class="text-xl font-bold text-terapia-text mb-4">Productos</h2>
         <div class="grid sm:grid-cols-2 gap-4 sm:gap-5">
           {products.map((product) => (
-            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm overflow-hidden min-w-0" data-product={product.name} data-slug={product.slug} data-price={product.price}>
-              <div class="aspect-[4/3] bg-terapia-bg flex items-center justify-center overflow-hidden">
+            <article class="rounded-2xl bg-white border-2 border-stone-100 shadow-sm overflow-hidden min-w-0 transition-all duration-200" data-product={product.name} data-slug={product.slug} data-price={product.price}>
+              <div class="aspect-[4/3] bg-terapia-bg flex items-center justify-center overflow-hidden relative">
                 <img src={product.image} alt={product.name} class="w-full h-full object-contain" loading="lazy" />
+                <span class="selected-badge hidden absolute top-3 right-3 rounded-full bg-terapia-sageDark text-white text-xs font-bold px-3 py-1.5 shadow-sm">✓ Seleccionado</span>
               </div>
               <div class="p-4 sm:p-5">
                 <h3 class="font-semibold text-lg text-terapia-text break-words">{product.name}</h3>
@@ -45,6 +46,7 @@ const regions = [
                     <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold" aria-label={`Agregar ${product.name}`}>+</button>
                   </div>
                 </div>
+                <button type="button" class="remove-product hidden mt-3 min-h-[40px] w-full rounded-xl border border-terapia-sageDark text-terapia-sageDark text-sm font-semibold px-3 py-2 hover:bg-terapia-bg" aria-label={`Quitar ${product.name} del pedido`}>Quitar del pedido</button>
               </div>
             </article>
           ))}
@@ -132,6 +134,22 @@ const regions = [
     let quoteTimer = null;
     let quoteRequestId = 0;
 
+    function updateCardState(card) {
+      const quantity = Number(card.querySelector(".qty-input").value || 0);
+      const selected = quantity > 0;
+      card.classList.toggle("border-terapia-sageDark", selected);
+      card.classList.toggle("ring-2", selected);
+      card.classList.toggle("ring-terapia-sage", selected);
+      card.classList.toggle("shadow-md", selected);
+      card.classList.toggle("border-stone-100", !selected);
+      card.querySelector(".selected-badge").classList.toggle("hidden", !selected);
+      card.querySelector(".remove-product").classList.toggle("hidden", !selected);
+    }
+
+    function updateAllCardStates() {
+      cards.forEach(updateCardState);
+    }
+
     function getItems() {
       return cards.flatMap((card) => {
         const quantity = Number(card.querySelector(".qty-input").value || 0);
@@ -165,6 +183,7 @@ const regions = [
     async function refreshQuote() {
       const requestId = ++quoteRequestId;
       const items = getItems();
+      updateAllCardStates();
       lastQuote = null;
       showError("");
       if (!items.length) {
@@ -202,9 +221,11 @@ const regions = [
     function scheduleQuote() { clearTimeout(quoteTimer); quoteTimer = setTimeout(refreshQuote, 180); }
     cards.forEach((card) => {
       const input = card.querySelector(".qty-input");
-      card.querySelector(".qty-minus").addEventListener("click", () => { input.value = String(Math.max(0, Number(input.value || 0) - 1)); scheduleQuote(); });
-      card.querySelector(".qty-plus").addEventListener("click", () => { input.value = String(Math.min(20, Number(input.value || 0) + 1)); scheduleQuote(); });
-      input.addEventListener("input", () => { input.value = String(Math.max(0, Math.min(20, Math.floor(Number(input.value || 0))))); scheduleQuote(); });
+      const syncSelection = () => { updateCardState(card); scheduleQuote(); };
+      card.querySelector(".qty-minus").addEventListener("click", () => { input.value = String(Math.max(0, Number(input.value || 0) - 1)); syncSelection(); });
+      card.querySelector(".qty-plus").addEventListener("click", () => { input.value = String(Math.min(20, Number(input.value || 0) + 1)); syncSelection(); });
+      card.querySelector(".remove-product").addEventListener("click", () => { input.value = "0"; syncSelection(); });
+      input.addEventListener("input", () => { input.value = String(Math.max(0, Math.min(20, Math.floor(Number(input.value || 0))))); syncSelection(); });
       input.addEventListener("focus", () => input.select());
     });
     courierEl.addEventListener("change", () => { updateDeliveryFields(); scheduleQuote(); });
@@ -257,6 +278,7 @@ const regions = [
       if (card) card.querySelector(".qty-input").value = "1";
     }
     updateDeliveryFields();
+    updateAllCardStates();
     refreshQuote();
   </script>
 </Layout>
