@@ -20,9 +20,9 @@ const regions = [
 <Layout title="Comprar Famores">
   <main id="contenido-principal" class="max-w-6xl mx-auto px-0 sm:px-4 py-4 sm:py-10 md:py-16 overflow-x-hidden">
     <header class="max-w-3xl mb-7 sm:mb-10">
-      <a href="/" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-terapia-sageDark hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">← Volver a Famores</a>
+      <a href="/" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-terapia-sageDark hover:underline">← Volver a Famores</a>
       <h1 class="text-3xl md:text-4xl font-bold text-terapia-text mt-2 sm:mt-4">Arma tu pedido</h1>
-      <p class="text-gray-600 mt-3">Compra el producto que quieras, sin depender de un set principal. Puedes llevar sólo mascotas, combinar productos y agregar varias unidades de cada uno.</p>
+      <p class="text-gray-600 mt-3">Compra el producto que quieras, combina productos y agrega varias unidades.</p>
     </header>
 
     <div class="grid lg:grid-cols-[1.5fr_0.9fr] gap-6 lg:gap-8 items-start min-w-0">
@@ -39,10 +39,10 @@ const regions = [
                 <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")}</p>
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <span class="text-sm font-medium text-gray-600">Cantidad</span>
-                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden shrink-0" role="group" aria-label={`Cantidad de ${product.name}`}>
-                    <button type="button" class="qty-minus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Quitar ${product.name}`}>−</button>
+                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden" role="group" aria-label={`Cantidad de ${product.name}`}>
+                    <button type="button" class="qty-minus min-w-[44px] min-h-[44px] px-3 font-bold" aria-label={`Quitar ${product.name}`}>−</button>
                     <input class="qty-input w-14 min-h-[44px] text-base text-center border-x border-stone-200 outline-none bg-white" type="number" inputmode="numeric" min="0" max="20" value="0" aria-label={`Cantidad de ${product.name}`} />
-                    <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Agregar ${product.name}`}>+</button>
+                    <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold" aria-label={`Agregar ${product.name}`}>+</button>
                   </div>
                 </div>
               </div>
@@ -56,13 +56,20 @@ const regions = [
         <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700 min-w-0" aria-live="polite"><p>Aún no agregas productos.</p></div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
-          <label class="block text-sm font-semibold text-terapia-text" for="courier">Entrega</label>
+          <label class="block text-sm font-semibold text-terapia-text" for="courier">Forma de entrega</label>
           <select id="courier" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
-            <option value="retiro">Retiro presencial</option>
-            <option value="blue">Blue Express</option>
-            <option value="starken">Starken</option>
-            <option value="chilexpress">Chilexpress</option>
+            <option value="retiro">Retiro presencial en local</option>
+            <option value="blue">Envío a domicilio</option>
+            <option value="chilexpress">Envío a sucursal Chilexpress</option>
+            <option value="starken">Envío a sucursal Starken</option>
           </select>
+
+          <div id="pickup-info" class="rounded-xl bg-terapia-bg border border-stone-200 px-4 py-3 text-sm text-gray-700">
+            <strong class="block text-terapia-text">Retiro en local</strong>
+            <span>Avenida Egaña 1638 B, Peñalolén, Santiago</span>
+            <span class="block mt-1">A media cuadra del Metro Grecia.</span>
+          </div>
+
           <div id="shipping-destination" class="hidden space-y-3">
             <label class="block text-sm font-semibold text-terapia-text" for="region">Región</label>
             <select id="region" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
@@ -71,25 +78,37 @@ const regions = [
             </select>
             <label class="block text-sm font-semibold text-terapia-text" for="commune">Comuna</label>
             <input id="commune" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. Peñalolén" autocomplete="address-level2" />
+            <div id="home-address-fields" class="hidden space-y-3">
+              <label class="block text-sm font-semibold text-terapia-text" for="delivery-address">Dirección de entrega</label>
+              <input id="delivery-address" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Calle, número, depto/casa" autocomplete="street-address" />
+            </div>
+            <div id="branch-fields" class="hidden space-y-3">
+              <label class="block text-sm font-semibold text-terapia-text" for="branch-name">Sucursal de destino</label>
+              <input id="branch-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
+            </div>
           </div>
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
           <label class="block text-sm font-semibold text-terapia-text" for="customer-name">Nombre</label>
-          <input id="customer-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="name" />
+          <input id="customer-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="given-name" />
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-lastname">Apellido</label>
+          <input id="customer-lastname" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="family-name" />
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-id">RUT / DNI</label>
+          <input id="customer-id" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. 12.345.678-9 o documento extranjero" autocomplete="off" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
           <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
-          <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total</span><strong id="total" class="whitespace-nowrap">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box">$0</strong></div>
+          <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total</span><strong id="total">$0</strong></div>
         </div>
 
-        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm break-words" role="alert" aria-live="assertive"></p>
-        <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 touch-manipulation disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">Pagar con Flow</button>
+        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm" role="alert"></p>
+        <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 disabled:opacity-50">Pagar con Flow</button>
         <p class="text-xs text-gray-500 mt-3">El total se recalcula en el servidor antes de crear el pago.</p>
       </aside>
     </div>
@@ -102,6 +121,11 @@ const regions = [
     const regionEl = document.getElementById("region");
     const communeEl = document.getElementById("commune");
     const destinationEl = document.getElementById("shipping-destination");
+    const pickupInfoEl = document.getElementById("pickup-info");
+    const homeAddressFieldsEl = document.getElementById("home-address-fields");
+    const branchFieldsEl = document.getElementById("branch-fields");
+    const deliveryAddressEl = document.getElementById("delivery-address");
+    const branchNameEl = document.getElementById("branch-name");
     const errorEl = document.getElementById("cart-error");
     const payButton = document.getElementById("pay-button");
     let lastQuote = null;
@@ -119,18 +143,23 @@ const regions = [
       if (!message) { errorEl.classList.add("hidden"); errorEl.textContent = ""; return; }
       errorEl.textContent = message;
       errorEl.classList.remove("hidden");
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.classList.add("ring-2", "ring-red-500", "ring-offset-2");
-        setTimeout(() => target.focus?.({ preventScroll: true }), 350);
-        setTimeout(() => target.classList.remove("ring-2", "ring-red-500", "ring-offset-2"), 3500);
-      }
+      if (target) { target.scrollIntoView({ behavior: "smooth", block: "center" }); target.focus?.({ preventScroll: true }); }
     }
 
     function renderLines(items) {
       const container = document.getElementById("cart-lines");
       if (!items.length) { container.innerHTML = '<p>Aún no agregas productos.</p>'; return; }
-      container.innerHTML = items.map((item) => `<div class="flex items-start justify-between gap-3 min-w-0"><span class="min-w-0 break-words">${item.quantity} × ${item.product}</span><strong class="whitespace-nowrap shrink-0">${money(item.lineTotal)}</strong></div>`).join("");
+      container.innerHTML = items.map((item) => `<div class="flex items-start justify-between gap-3"><span>${item.quantity} × ${item.product}</span><strong>${money(item.lineTotal)}</strong></div>`).join("");
+    }
+
+    function updateDeliveryFields() {
+      const courier = courierEl.value;
+      const isPickup = courier === "retiro";
+      const isHome = courier === "blue";
+      destinationEl.classList.toggle("hidden", isPickup);
+      pickupInfoEl.classList.toggle("hidden", !isPickup);
+      homeAddressFieldsEl.classList.toggle("hidden", !isHome);
+      branchFieldsEl.classList.toggle("hidden", isPickup || isHome);
     }
 
     async function refreshQuote() {
@@ -178,7 +207,7 @@ const regions = [
       input.addEventListener("input", () => { input.value = String(Math.max(0, Math.min(20, Math.floor(Number(input.value || 0))))); scheduleQuote(); });
       input.addEventListener("focus", () => input.select());
     });
-    courierEl.addEventListener("change", () => { destinationEl.classList.toggle("hidden", courierEl.value === "retiro"); scheduleQuote(); });
+    courierEl.addEventListener("change", () => { updateDeliveryFields(); scheduleQuote(); });
     regionEl.addEventListener("change", scheduleQuote);
     communeEl.addEventListener("input", scheduleQuote);
 
@@ -187,16 +216,31 @@ const regions = [
       if (!items.length) return showError("Agrega al menos un producto al carrito.", cards[0]?.querySelector(".qty-plus") || cards[0]);
       if (!lastQuote) return refreshQuote();
       const nameEl = document.getElementById("customer-name");
+      const lastNameEl = document.getElementById("customer-lastname");
+      const idEl = document.getElementById("customer-id");
       const emailEl = document.getElementById("customer-email");
       const name = nameEl.value.trim();
+      const lastName = lastNameEl.value.trim();
+      const customerId = idEl.value.trim();
       const email = emailEl.value.trim();
+      const deliveryAddress = deliveryAddressEl.value.trim();
+      const branchName = branchNameEl.value.trim();
+      const courier = courierEl.value;
       if (!name) return showError("Ingresa tu nombre.", nameEl);
+      if (!lastName) return showError("Ingresa tu apellido.", lastNameEl);
+      if (!customerId) return showError("Ingresa tu RUT o DNI.", idEl);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Ingresa un correo válido.", emailEl);
+      if (courier === "blue" && !deliveryAddress) return showError("Ingresa la dirección de entrega.", deliveryAddressEl);
+      if ((courier === "chilexpress" || courier === "starken") && !branchName) return showError("Indica la sucursal de destino.", branchNameEl);
       payButton.disabled = true;
       payButton.textContent = "Creando pago…";
       showError("");
       try {
-        const response = await fetch("/api/flow/create-cart-payment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items, courier: courierEl.value, region: regionEl.value.trim(), commune: communeEl.value.trim(), name, email }) });
+        const response = await fetch("/api/flow/create-cart-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, courier, region: regionEl.value.trim(), commune: communeEl.value.trim(), name, lastName, customerId, email, deliveryAddress, branchName }),
+        });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
         window.location.href = data.checkoutUrl;
@@ -212,6 +256,7 @@ const regions = [
       const card = cards.find((candidate) => candidate.dataset.slug === preselected);
       if (card) card.querySelector(".qty-input").value = "1";
     }
+    updateDeliveryFields();
     refreshQuote();
   </script>
 </Layout>
