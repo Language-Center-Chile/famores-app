@@ -97,12 +97,10 @@ const mascotas = [
             >1</span
         >
         <h2 class="text-2xl md:text-3xl font-bold text-terapia-text">
-            Elige tu set Famores
+            Elige tus Famores
         </h2>
         <p class="text-gray-500 mt-3 pr-16 sm:pr-0">
-            Cada set incluye 14 figuras elaboradas para representar vínculos,
-            familias y diferentes configuraciones humanas. Elige la
-            alternativa que mejor se adapte a tu trabajo o propósito.
+            Puedes elegir un set completo, agregar una mascota o comprar solo una mascota. Antes de continuar podrás revisar y editar tu carrito.
         </p>
     </div>
 
@@ -163,10 +161,10 @@ const mascotas = [
 
     <div class="text-center max-w-xl mx-auto mt-16 mb-8">
         <h3 class="text-xl md:text-2xl font-bold text-terapia-text">
-            Agrega mascotas a tu set
+            Elige una mascota
         </h3>
         <p class="text-gray-500 mt-2 text-sm">
-            Complementos opcionales para sumar a tu Famor.
+            Puedes agregarla a un set o comprarla por separado. Si vuelves a tocar la misma mascota, se elimina de tu selección.
         </p>
     </div>
 
@@ -214,23 +212,203 @@ const mascotas = [
                         <p class="text-sm text-gray-500">{producto.descripcion}</p>
 
                         <span class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-woodLight/40 text-terapia-wood font-semibold py-2.5 px-4 text-sm">
-                            Agregar
+                            Agregar al carrito
                         </span>
                     </div>
                 </button>
             ))
         }
     </div>
+
+    <aside id="carrito-famores" class="max-w-2xl mx-auto mt-12 rounded-2xl border border-terapia-sage/30 bg-white shadow-sm overflow-hidden" aria-live="polite">
+        <div class="px-5 py-4 bg-terapia-sage/10 border-b border-terapia-sage/20 flex items-center justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-terapia-sageDark">Tu carrito</p>
+                <h3 class="text-xl font-bold text-terapia-text">Revisa tu compra antes de continuar</h3>
+            </div>
+            <span id="carrito-contador" class="shrink-0 rounded-full bg-terapia-sage text-white text-sm font-bold min-w-8 h-8 px-2 inline-flex items-center justify-center">0</span>
+        </div>
+
+        <div class="p-5 space-y-3">
+            <div id="carrito-vacio" class="rounded-xl border border-dashed border-gray-300 p-5 text-center text-sm text-gray-500">
+                Tu carrito está vacío. Elige un set, una mascota o ambos.
+            </div>
+
+            <div id="carrito-set" class="hidden rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-xs text-gray-500">Set</p>
+                    <p id="carrito-set-nombre" class="font-semibold text-terapia-text"></p>
+                    <p id="carrito-set-precio" class="text-sm text-terapia-sageDark font-medium"></p>
+                </div>
+                <button type="button" onclick="quitarSetDelCarrito()" class="shrink-0 text-sm font-semibold text-red-700 hover:text-red-800 underline underline-offset-2">Quitar</button>
+            </div>
+
+            <div id="carrito-mascota" class="hidden rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-xs text-gray-500">Mascota</p>
+                    <p id="carrito-mascota-nombre" class="font-semibold text-terapia-text"></p>
+                    <p id="carrito-mascota-precio" class="text-sm text-terapia-sageDark font-medium"></p>
+                </div>
+                <button type="button" onclick="quitarMascotaDelCarrito()" class="shrink-0 text-sm font-semibold text-red-700 hover:text-red-800 underline underline-offset-2">Quitar</button>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+                <span class="font-semibold text-terapia-text">Subtotal productos</span>
+                <span id="carrito-total" class="text-2xl font-bold text-terapia-wood">$0</span>
+            </div>
+            <p class="text-xs text-gray-500">El envío se calcula o coordina en el siguiente paso. Puedes cambiar o quitar productos en cualquier momento antes de confirmar el pedido.</p>
+        </div>
+    </aside>
 </section>
 
 <style>
-    /* Layout.astro define "button.option-card { display: block; }" para
-       resetear el <button> nativo; esa regla, por especificidad (elemento +
-       clase), gana sobre la utilidad ".flex" de Tailwind y anulaba el
-       layout en columna que necesitan estas tarjetas para que el botón
-       quede alineado al final mediante margin-top: auto. Se restablece acá,
-       específico a las tarjetas de set, sin tocar el reset global. */
     button.set-card {
         display: flex;
     }
 </style>
+
+<script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+        const formatoPrecio = (valor) => `$${Number(valor || 0).toLocaleString("es-CL")}`;
+
+        function hayProductosReales() {
+            return Boolean((state.set && state.set !== "Solo Mascota") || state.mascota);
+        }
+
+        function sincronizarPasoEnvio() {
+            const hayProductos = hayProductosReales();
+            const seccionEnvio = document.getElementById("section-envio");
+            const avisoElegirSet = document.getElementById("aviso-elige-set");
+
+            if (seccionEnvio) {
+                seccionEnvio.classList.toggle("opacity-50", !hayProductos);
+                seccionEnvio.classList.toggle("pointer-events-none", !hayProductos);
+            }
+            if (avisoElegirSet) {
+                avisoElegirSet.textContent = "Elige al menos un producto para continuar";
+                avisoElegirSet.classList.toggle("hidden", hayProductos);
+            }
+        }
+
+        function sincronizarCarrito() {
+            const setReal = state.set && state.set !== "Solo Mascota" ? state.set : null;
+            const precioSet = setReal ? state.precioBase : 0;
+            const mascota = state.mascota;
+            const precioMascota = mascota ? state.precioMascota : 0;
+            const cantidad = (setReal ? 1 : 0) + (mascota ? 1 : 0);
+
+            const vacio = document.getElementById("carrito-vacio");
+            const rowSet = document.getElementById("carrito-set");
+            const rowMascota = document.getElementById("carrito-mascota");
+            const contador = document.getElementById("carrito-contador");
+            const total = document.getElementById("carrito-total");
+
+            if (vacio) vacio.classList.toggle("hidden", cantidad > 0);
+            if (contador) contador.textContent = String(cantidad);
+            if (total) total.textContent = formatoPrecio(precioSet + precioMascota);
+
+            if (rowSet) {
+                rowSet.classList.toggle("hidden", !setReal);
+                if (setReal) {
+                    document.getElementById("carrito-set-nombre").textContent = setReal;
+                    document.getElementById("carrito-set-precio").textContent = formatoPrecio(precioSet);
+                }
+            }
+
+            if (rowMascota) {
+                rowMascota.classList.toggle("hidden", !mascota);
+                if (mascota) {
+                    document.getElementById("carrito-mascota-nombre").textContent = mascota;
+                    document.getElementById("carrito-mascota-precio").textContent = formatoPrecio(precioMascota);
+                }
+            }
+
+            sincronizarPasoEnvio();
+        }
+
+        const selectSetOriginal = window.selectSet;
+        if (typeof selectSetOriginal === "function") {
+            window.selectSet = function(tipo, precio) {
+                const mismoSet = state.set === tipo;
+                if (mismoSet) {
+                    state.set = null;
+                    state.precioBase = 0;
+                    document.querySelectorAll(".set-card").forEach((card) => {
+                        card.classList.remove("selected");
+                        card.setAttribute("aria-pressed", "false");
+                    });
+                    actualizarResumen();
+                } else {
+                    selectSetOriginal(tipo, precio);
+                }
+                sincronizarCarrito();
+            };
+        }
+
+        const selectMascotaOriginal = window.selectMascota;
+        if (typeof selectMascotaOriginal === "function") {
+            window.selectMascota = function(tipo, precio) {
+                selectMascotaOriginal(tipo, precio);
+                sincronizarCarrito();
+            };
+        }
+
+        window.quitarSetDelCarrito = function() {
+            state.set = null;
+            state.precioBase = 0;
+            document.querySelectorAll(".set-card").forEach((card) => {
+                card.classList.remove("selected");
+                card.setAttribute("aria-pressed", "false");
+            });
+            actualizarResumen();
+            sincronizarCarrito();
+        };
+
+        window.quitarMascotaDelCarrito = function() {
+            state.mascota = null;
+            state.precioMascota = 0;
+            document.querySelectorAll(".mascota-card").forEach((card) => {
+                card.classList.remove("selected");
+                card.setAttribute("aria-pressed", "false");
+            });
+            actualizarResumen();
+            sincronizarCarrito();
+        };
+
+        const actualizarResumenOriginal = window.actualizarResumen;
+        if (typeof actualizarResumenOriginal === "function") {
+            window.actualizarResumen = function() {
+                actualizarResumenOriginal();
+
+                if (!state.set && state.mascota && state.envio) {
+                    const producto = document.getElementById("resumen-producto");
+                    const precio = document.getElementById("resumen-precio");
+                    const rowMascota = document.getElementById("resumen-mascota-row");
+                    const nombreMascota = document.getElementById("resumen-mascota-nombre");
+                    const precioMascota = document.getElementById("resumen-mascota-precio");
+                    const total = document.getElementById("resumen-total");
+
+                    if (producto) producto.textContent = "Compra sin set";
+                    if (precio) precio.textContent = "$0";
+                    if (rowMascota) rowMascota.classList.remove("hidden");
+                    if (nombreMascota) nombreMascota.textContent = state.mascota;
+                    if (precioMascota) precioMascota.textContent = formatoPrecio(state.precioMascota);
+                    if (total) total.textContent = formatoPrecio(state.precioMascota + state.costoCaja);
+                }
+            };
+        }
+
+        const generarWhatsAppOriginal = window.generarWhatsApp;
+        if (typeof generarWhatsAppOriginal === "function") {
+            window.generarWhatsApp = function() {
+                if (!state.set && state.mascota) {
+                    state.set = "Solo Mascota";
+                    state.precioBase = 0;
+                }
+                return generarWhatsAppOriginal();
+            };
+        }
+
+        sincronizarCarrito();
+    });
+</script>
