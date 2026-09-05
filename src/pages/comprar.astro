@@ -20,9 +20,9 @@ const regions = [
 <Layout title="Comprar Famores">
   <main id="contenido-principal" class="max-w-6xl mx-auto px-0 sm:px-4 py-4 sm:py-10 md:py-16 overflow-x-hidden">
     <header class="max-w-3xl mb-7 sm:mb-10">
-      <a href="/" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-terapia-sageDark hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">← Volver a Famores</a>
+      <a href="/" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-terapia-sageDark hover:underline">← Volver a Famores</a>
       <h1 class="text-3xl md:text-4xl font-bold text-terapia-text mt-2 sm:mt-4">Arma tu pedido</h1>
-      <p class="text-gray-600 mt-3">Compra el producto que quieras, sin depender de un set principal. Puedes llevar sólo mascotas, combinar productos y agregar varias unidades de cada uno.</p>
+      <p class="text-gray-600 mt-3">Compra el producto que quieras, combina productos y agrega varias unidades.</p>
     </header>
 
     <div class="grid lg:grid-cols-[1.5fr_0.9fr] gap-6 lg:gap-8 items-start min-w-0">
@@ -39,10 +39,10 @@ const regions = [
                 <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")}</p>
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <span class="text-sm font-medium text-gray-600">Cantidad</span>
-                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden shrink-0" role="group" aria-label={`Cantidad de ${product.name}`}>
-                    <button type="button" class="qty-minus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Quitar ${product.name}`}>−</button>
+                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden" role="group" aria-label={`Cantidad de ${product.name}`}>
+                    <button type="button" class="qty-minus min-w-[44px] min-h-[44px] px-3 font-bold" aria-label={`Quitar ${product.name}`}>−</button>
                     <input class="qty-input w-14 min-h-[44px] text-base text-center border-x border-stone-200 outline-none bg-white" type="number" inputmode="numeric" min="0" max="20" value="0" aria-label={`Cantidad de ${product.name}`} />
-                    <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Agregar ${product.name}`}>+</button>
+                    <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold" aria-label={`Agregar ${product.name}`}>+</button>
                   </div>
                 </div>
               </div>
@@ -78,12 +78,10 @@ const regions = [
             </select>
             <label class="block text-sm font-semibold text-terapia-text" for="commune">Comuna</label>
             <input id="commune" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. Peñalolén" autocomplete="address-level2" />
-
             <div id="home-address-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="delivery-address">Dirección de entrega</label>
               <input id="delivery-address" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Calle, número, depto/casa" autocomplete="street-address" />
             </div>
-
             <div id="branch-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="branch-name">Sucursal de destino</label>
               <input id="branch-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
@@ -96,19 +94,21 @@ const regions = [
           <input id="customer-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="given-name" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-lastname">Apellido</label>
           <input id="customer-lastname" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="family-name" />
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-id">RUT / DNI</label>
+          <input id="customer-id" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. 12.345.678-9 o documento extranjero" autocomplete="off" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
           <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
-          <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box" class="whitespace-nowrap">$0</strong></div>
-          <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total</span><strong id="total" class="whitespace-nowrap">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box">$0</strong></div>
+          <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total</span><strong id="total">$0</strong></div>
         </div>
 
-        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm break-words" role="alert" aria-live="assertive"></p>
-        <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 touch-manipulation disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">Pagar con Flow</button>
+        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm" role="alert"></p>
+        <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 disabled:opacity-50">Pagar con Flow</button>
         <p class="text-xs text-gray-500 mt-3">El total se recalcula en el servidor antes de crear el pago.</p>
       </aside>
     </div>
@@ -143,18 +143,13 @@ const regions = [
       if (!message) { errorEl.classList.add("hidden"); errorEl.textContent = ""; return; }
       errorEl.textContent = message;
       errorEl.classList.remove("hidden");
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.classList.add("ring-2", "ring-red-500", "ring-offset-2");
-        setTimeout(() => target.focus?.({ preventScroll: true }), 350);
-        setTimeout(() => target.classList.remove("ring-2", "ring-red-500", "ring-offset-2"), 3500);
-      }
+      if (target) { target.scrollIntoView({ behavior: "smooth", block: "center" }); target.focus?.({ preventScroll: true }); }
     }
 
     function renderLines(items) {
       const container = document.getElementById("cart-lines");
       if (!items.length) { container.innerHTML = '<p>Aún no agregas productos.</p>'; return; }
-      container.innerHTML = items.map((item) => `<div class="flex items-start justify-between gap-3 min-w-0"><span class="min-w-0 break-words">${item.quantity} × ${item.product}</span><strong class="whitespace-nowrap shrink-0">${money(item.lineTotal)}</strong></div>`).join("");
+      container.innerHTML = items.map((item) => `<div class="flex items-start justify-between gap-3"><span>${item.quantity} × ${item.product}</span><strong>${money(item.lineTotal)}</strong></div>`).join("");
     }
 
     function updateDeliveryFields() {
@@ -222,15 +217,18 @@ const regions = [
       if (!lastQuote) return refreshQuote();
       const nameEl = document.getElementById("customer-name");
       const lastNameEl = document.getElementById("customer-lastname");
+      const idEl = document.getElementById("customer-id");
       const emailEl = document.getElementById("customer-email");
       const name = nameEl.value.trim();
       const lastName = lastNameEl.value.trim();
+      const customerId = idEl.value.trim();
       const email = emailEl.value.trim();
       const deliveryAddress = deliveryAddressEl.value.trim();
       const branchName = branchNameEl.value.trim();
       const courier = courierEl.value;
       if (!name) return showError("Ingresa tu nombre.", nameEl);
       if (!lastName) return showError("Ingresa tu apellido.", lastNameEl);
+      if (!customerId) return showError("Ingresa tu RUT o DNI.", idEl);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Ingresa un correo válido.", emailEl);
       if (courier === "blue" && !deliveryAddress) return showError("Ingresa la dirección de entrega.", deliveryAddressEl);
       if ((courier === "chilexpress" || courier === "starken") && !branchName) return showError("Indica la sucursal de destino.", branchNameEl);
@@ -241,17 +239,7 @@ const regions = [
         const response = await fetch("/api/flow/create-cart-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items,
-            courier,
-            region: regionEl.value.trim(),
-            commune: communeEl.value.trim(),
-            name,
-            lastName,
-            email,
-            deliveryAddress,
-            branchName,
-          }),
+          body: JSON.stringify({ items, courier, region: regionEl.value.trim(), commune: communeEl.value.trim(), name, lastName, customerId, email, deliveryAddress, branchName }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
