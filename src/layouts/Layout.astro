@@ -6,13 +6,8 @@ interface Props {
 	title?: string;
 }
 
-const { title = "Cotizador FAMORES" } = Astro.props;
+const { title = "Famores" } = Astro.props;
 const description = "Diseña tu set de herramientas terapéuticas sistémicas de forma personalizada.";
-// Astro.url.origin no es confiable detrás de un proxy reverso (Coolify):
-// @astrojs/node deriva el protocolo del socket TCP crudo (req.socket.encrypted),
-// no de X-Forwarded-Proto, así que detrás de un proxy que termina TLS siempre
-// resolvería "http://" aunque el sitio público sea HTTPS. Astro.site (configurado
-// en astro.config.mjs) es la fuente correcta para canonical/og:image.
 const siteBase = Astro.site ?? Astro.url;
 const canonicalUrl = new URL(Astro.url.pathname, siteBase);
 const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
@@ -30,10 +25,6 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 		<link rel="canonical" href={canonicalUrl} />
 
 		<script is:inline>
-			// Captura de atribución: guarda los utm_* de la URL de llegada en
-			// sessionStorage. Solo se sobrescribe cuando la URL trae utm_source
-			// nuevo, así una navegación interna sin params no borra el origen
-			// original del lead dentro de la misma sesión.
 			(function captureUtm() {
 				const params = new URLSearchParams(window.location.search);
 				if (!params.has("utm_source")) return;
@@ -80,17 +71,15 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 			tailwind.config = {
 				theme: {
 					extend: {
-						fontFamily: {
-							sans: ['Inter', 'sans-serif'],
-						},
+						fontFamily: { sans: ['Inter', 'sans-serif'] },
 						colors: {
 							terapia: {
-								bg: '#FDFBF7', /* Beige muy suave y cálido */
-								wood: '#8B5A2B', /* Tono madera para Famores */
-								woodLight: '#D2B48C', /* Madera clara */
-								sage: '#8FAC9A', /* Verde salvia que da tranquilidad */
+								bg: '#FDFBF7',
+								wood: '#8B5A2B',
+								woodLight: '#D2B48C',
+								sage: '#8FAC9A',
 								sageDark: '#5E7A68',
-								text: '#4A4A4A' /* Gris oscuro, menos agresivo que el negro puro */
+								text: '#4A4A4A'
 							}
 						}
 					}
@@ -101,8 +90,6 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 	<body class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
 		<a class="skip-link" href="#contenido-principal">Saltar al contenido principal</a>
 		<slot />
-		<script is:inline src="/js/checkout-v2.js"></script>
-		<script is:inline src="/js/checkout-validation.js"></script>
 		<BotonSoporte />
 		<Footer />
 	</body>
@@ -130,59 +117,6 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 
 	.skip-link:focus {
 		transform: translateY(0);
-	}
-
-	/* Animación suave para todas las interacciones */
-	.smooth-transition {
-		transition: all 0.3s ease-in-out;
-	}
-
-	/* Estilo para las tarjetas seleccionables */
-	.option-card {
-		border: 2px solid #e5e7eb;
-		cursor: pointer;
-	}
-
-	/* Reset mínimo para tarjetas que son <button> reales (accesibilidad) */
-	button.option-card {
-		display: block;
-		width: 100%;
-		text-align: left;
-		background: none;
-		font: inherit;
-		color: inherit;
-	}
-
-	.option-card:hover {
-		border-color: #d2b48c;
-		transform: translateY(-2px);
-		box-shadow:
-			0 4px 6px -1px rgba(0, 0, 0, 0.1),
-			0 2px 4px -1px rgba(0, 0, 0, 0.06);
-	}
-
-	.option-card:focus-visible {
-		outline: 2px solid #8fac9a;
-		outline-offset: 2px;
-	}
-
-	/* Clase que se aplica cuando el cliente selecciona una opción */
-	.option-card.selected {
-		border-color: #8fac9a;
-		background-color: #f4f8f5; /* Fondo salvia muy claro */
-		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-	}
-
-	.selected-icon {
-		opacity: 0;
-		transform: scale(0.5);
-		transition: all 0.3s ease;
-	}
-
-	.option-card.selected .selected-icon {
-		opacity: 1;
-		transform: scale(1);
-		color: #8fac9a;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
