@@ -18,31 +18,31 @@ const regions = [
 ---
 
 <Layout title="Comprar Famores">
-  <main class="max-w-6xl mx-auto px-4 py-10 md:py-16">
-    <header class="max-w-3xl mb-10">
-      <a href="/" class="text-sm font-semibold text-terapia-sageDark hover:underline">← Volver a Famores</a>
-      <h1 class="text-3xl md:text-4xl font-bold text-terapia-text mt-4">Arma tu pedido</h1>
+  <main id="contenido-principal" class="max-w-6xl mx-auto px-0 sm:px-4 py-4 sm:py-10 md:py-16 overflow-x-hidden">
+    <header class="max-w-3xl mb-7 sm:mb-10">
+      <a href="/" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-terapia-sageDark hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">← Volver a Famores</a>
+      <h1 class="text-3xl md:text-4xl font-bold text-terapia-text mt-2 sm:mt-4">Arma tu pedido</h1>
       <p class="text-gray-600 mt-3">Compra el producto que quieras, sin depender de un set principal. Puedes llevar sólo mascotas, combinar productos y agregar varias unidades de cada uno.</p>
     </header>
 
-    <div class="grid lg:grid-cols-[1.5fr_0.9fr] gap-8 items-start">
-      <section>
-        <h2 class="text-xl font-bold text-terapia-text mb-4">Productos</h2>
-        <div class="grid sm:grid-cols-2 gap-5">
+    <div class="grid lg:grid-cols-[1.5fr_0.9fr] gap-6 lg:gap-8 items-start min-w-0">
+      <section class="min-w-0" aria-labelledby="productos-heading">
+        <h2 id="productos-heading" class="text-xl font-bold text-terapia-text mb-4">Productos</h2>
+        <div class="grid sm:grid-cols-2 gap-4 sm:gap-5">
           {products.map((product) => (
-            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm overflow-hidden" data-product={product.name} data-slug={product.slug} data-price={product.price}>
+            <article class="rounded-2xl bg-white border border-stone-100 shadow-sm overflow-hidden min-w-0" data-product={product.name} data-slug={product.slug} data-price={product.price}>
               <div class="aspect-[4/3] bg-terapia-bg flex items-center justify-center overflow-hidden">
                 <img src={product.image} alt={product.name} class="w-full h-full object-contain" loading="lazy" />
               </div>
-              <div class="p-5">
-                <h3 class="font-semibold text-lg text-terapia-text">{product.name}</h3>
+              <div class="p-4 sm:p-5">
+                <h3 class="font-semibold text-lg text-terapia-text break-words">{product.name}</h3>
                 <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")}</p>
-                <div class="mt-4 flex items-center justify-between gap-3">
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <span class="text-sm font-medium text-gray-600">Cantidad</span>
-                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden">
-                    <button type="button" class="qty-minus px-3 py-2 font-bold" aria-label={`Quitar ${product.name}`}>−</button>
-                    <input class="qty-input w-12 text-center border-0 outline-none" type="number" min="0" max="20" value="0" aria-label={`Cantidad de ${product.name}`} />
-                    <button type="button" class="qty-plus px-3 py-2 font-bold" aria-label={`Agregar ${product.name}`}>+</button>
+                  <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden shrink-0" role="group" aria-label={`Cantidad de ${product.name}`}>
+                    <button type="button" class="qty-minus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Quitar ${product.name}`}>−</button>
+                    <input class="qty-input w-14 min-h-[44px] text-base text-center border-x border-stone-200 outline-none bg-white" type="number" inputmode="numeric" min="0" max="20" value="0" aria-label={`Cantidad de ${product.name}`} />
+                    <button type="button" class="qty-plus min-w-[44px] min-h-[44px] px-3 font-bold touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terapia-sageDark" aria-label={`Agregar ${product.name}`}>+</button>
                   </div>
                 </div>
               </div>
@@ -51,13 +51,13 @@ const regions = [
         </div>
       </section>
 
-      <aside class="lg:sticky lg:top-5 rounded-2xl bg-white border border-stone-100 shadow-sm p-6">
-        <h2 class="text-xl font-bold text-terapia-text">Tu carrito</h2>
-        <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700"><p>Aún no agregas productos.</p></div>
+      <aside class="lg:sticky lg:top-5 rounded-2xl bg-white border border-stone-100 shadow-sm p-4 sm:p-6 min-w-0" aria-labelledby="carrito-heading">
+        <h2 id="carrito-heading" class="text-xl font-bold text-terapia-text">Tu carrito</h2>
+        <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700 min-w-0" aria-live="polite"><p>Aún no agregas productos.</p></div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
           <label class="block text-sm font-semibold text-terapia-text" for="courier">Entrega</label>
-          <select id="courier" class="w-full rounded-xl border border-stone-200 px-3 py-3 bg-white">
+          <select id="courier" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
             <option value="retiro">Retiro presencial</option>
             <option value="blue">Blue Express</option>
             <option value="starken">Starken</option>
@@ -65,31 +65,31 @@ const regions = [
           </select>
           <div id="shipping-destination" class="hidden space-y-3">
             <label class="block text-sm font-semibold text-terapia-text" for="region">Región</label>
-            <select id="region" class="w-full rounded-xl border border-stone-200 px-3 py-3 bg-white">
+            <select id="region" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
               <option value="">Selecciona región</option>
               {regions.map((region) => <option value={region}>{region}</option>)}
             </select>
             <label class="block text-sm font-semibold text-terapia-text" for="commune">Comuna</label>
-            <input id="commune" type="text" class="w-full rounded-xl border border-stone-200 px-3 py-3" placeholder="Ej. Peñalolén" />
+            <input id="commune" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. Peñalolén" autocomplete="address-level2" />
           </div>
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
           <label class="block text-sm font-semibold text-terapia-text" for="customer-name">Nombre</label>
-          <input id="customer-name" type="text" class="w-full rounded-xl border border-stone-200 px-3 py-3" autocomplete="name" />
+          <input id="customer-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="name" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
-          <input id="customer-email" type="email" class="w-full rounded-xl border border-stone-200 px-3 py-3" autocomplete="email" />
+          <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
-          <div class="flex justify-between"><span>Productos</span><strong id="subtotal">$0</strong></div>
-          <div class="flex justify-between"><span>Despacho</span><strong id="shipping">$0</strong></div>
-          <div class="flex justify-between"><span>Caja</span><strong id="box">$0</strong></div>
-          <div class="flex justify-between text-lg pt-2"><span class="font-bold">Total</span><strong id="total">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal" class="whitespace-nowrap">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping" class="whitespace-nowrap">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box" class="whitespace-nowrap">$0</strong></div>
+          <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total</span><strong id="total" class="whitespace-nowrap">$0</strong></div>
         </div>
 
-        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm"></p>
-        <button id="pay-button" type="button" class="w-full mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3.5 px-4 disabled:opacity-50" disabled>Pagar con Flow</button>
+        <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm break-words" role="alert" aria-live="assertive"></p>
+        <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 touch-manipulation disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terapia-sageDark">Pagar con Flow</button>
         <p class="text-xs text-gray-500 mt-3">El total se recalcula en el servidor antes de crear el pago.</p>
       </aside>
     </div>
@@ -122,7 +122,7 @@ const regions = [
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.classList.add("ring-2", "ring-red-500", "ring-offset-2");
-        setTimeout(() => target.focus?.(), 350);
+        setTimeout(() => target.focus?.({ preventScroll: true }), 350);
         setTimeout(() => target.classList.remove("ring-2", "ring-red-500", "ring-offset-2"), 3500);
       }
     }
@@ -130,20 +130,21 @@ const regions = [
     function renderLines(items) {
       const container = document.getElementById("cart-lines");
       if (!items.length) { container.innerHTML = '<p>Aún no agregas productos.</p>'; return; }
-      container.innerHTML = items.map((item) => `<div class="flex justify-between gap-3"><span>${item.quantity} × ${item.product}</span><strong>${money(item.lineTotal)}</strong></div>`).join("");
+      container.innerHTML = items.map((item) => `<div class="flex items-start justify-between gap-3 min-w-0"><span class="min-w-0 break-words">${item.quantity} × ${item.product}</span><strong class="whitespace-nowrap shrink-0">${money(item.lineTotal)}</strong></div>`).join("");
     }
 
     async function refreshQuote() {
       const requestId = ++quoteRequestId;
       const items = getItems();
       lastQuote = null;
-      payButton.disabled = true;
       showError("");
       if (!items.length) {
         renderLines([]);
         ["subtotal","shipping","box","total"].forEach((id) => document.getElementById(id).textContent = "$0");
+        payButton.disabled = false;
         return;
       }
+      payButton.disabled = true;
       const courier = courierEl.value;
       const region = regionEl.value.trim();
       const commune = communeEl.value.trim();
@@ -163,7 +164,10 @@ const regions = [
         document.getElementById("box").textContent = money(data.boxPrice);
         document.getElementById("total").textContent = money(data.total);
         payButton.disabled = false;
-      } catch (error) { showError(error instanceof Error ? error.message : "No fue posible calcular el pedido."); }
+      } catch (error) {
+        showError(error instanceof Error ? error.message : "No fue posible calcular el pedido.");
+        payButton.disabled = false;
+      }
     }
 
     function scheduleQuote() { clearTimeout(quoteTimer); quoteTimer = setTimeout(refreshQuote, 180); }
@@ -172,6 +176,7 @@ const regions = [
       card.querySelector(".qty-minus").addEventListener("click", () => { input.value = String(Math.max(0, Number(input.value || 0) - 1)); scheduleQuote(); });
       card.querySelector(".qty-plus").addEventListener("click", () => { input.value = String(Math.min(20, Number(input.value || 0) + 1)); scheduleQuote(); });
       input.addEventListener("input", () => { input.value = String(Math.max(0, Math.min(20, Math.floor(Number(input.value || 0))))); scheduleQuote(); });
+      input.addEventListener("focus", () => input.select());
     });
     courierEl.addEventListener("change", () => { destinationEl.classList.toggle("hidden", courierEl.value === "retiro"); scheduleQuote(); });
     regionEl.addEventListener("change", scheduleQuote);
@@ -179,7 +184,7 @@ const regions = [
 
     payButton.addEventListener("click", async () => {
       const items = getItems();
-      if (!items.length) return showError("Agrega al menos un producto al carrito.", cards[0]);
+      if (!items.length) return showError("Agrega al menos un producto al carrito.", cards[0]?.querySelector(".qty-plus") || cards[0]);
       if (!lastQuote) return refreshQuote();
       const nameEl = document.getElementById("customer-name");
       const emailEl = document.getElementById("customer-email");
