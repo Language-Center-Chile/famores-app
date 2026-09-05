@@ -17,18 +17,14 @@ export const POST: APIRoute = async ({ request }) => {
     const courier = clean(body.courier, 30);
     const region = clean(body.region);
     const commune = clean(body.commune);
+    const country = clean(body.country, 120);
+    const city = clean(body.city, 120);
     const deliveryAddress = clean(body.deliveryAddress, 220);
     const branchName = clean(body.branchName, 220);
 
-    if (!name) {
-      return Response.json({ error: "Nombre no válido." }, { status: 400 });
-    }
-    if (!lastName) {
-      return Response.json({ error: "Apellido no válido." }, { status: 400 });
-    }
-    if (!customerId) {
-      return Response.json({ error: "RUT/DNI no válido." }, { status: 400 });
-    }
+    if (!name) return Response.json({ error: "Nombre no válido." }, { status: 400 });
+    if (!lastName) return Response.json({ error: "Apellido no válido." }, { status: 400 });
+    if (!customerId) return Response.json({ error: "RUT/DNI no válido." }, { status: 400 });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json({ error: "Correo de pago no válido." }, { status: 400 });
     }
@@ -37,6 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
     if ((courier === "chilexpress" || courier === "starken") && !branchName) {
       return Response.json({ error: "Debes indicar la sucursal de destino." }, { status: 400 });
+    }
+    if (courier === "international" && (!country || !city || !deliveryAddress)) {
+      return Response.json({ error: "Debes ingresar país, ciudad y dirección para cotizar el envío internacional." }, { status: 400 });
     }
 
     const calculated = calculateCartOrder({
@@ -57,7 +56,9 @@ export const POST: APIRoute = async ({ request }) => {
         ? "Envío a domicilio"
         : courier === "chilexpress"
           ? "Envío a sucursal Chilexpress"
-          : "Envío a sucursal Starken";
+          : courier === "starken"
+            ? "Envío a sucursal Starken"
+            : "Envío internacional — despacho por cotizar";
 
     const optional = JSON.stringify({
       items: calculated.items,
@@ -65,15 +66,18 @@ export const POST: APIRoute = async ({ request }) => {
       courier: calculated.courierLabel,
       region: region || undefined,
       commune: commune || undefined,
+      country: country || undefined,
+      city: city || undefined,
       deliveryAddress: deliveryAddress || undefined,
       branchName: branchName || undefined,
       pickupAddress: courier === "retiro"
         ? "Avenida Egaña 1638 B, Peñalolén, Santiago (a media cuadra del Metro Grecia)"
         : undefined,
-      shipping: calculated.shippingPrice,
+      internationalShippingQuotePending: courier === "international",
+      shipping: courier === "international" ? "POR_COTIZAR" : calculated.shippingPrice,
       box: calculated.boxPrice,
       subtotal: calculated.subtotal,
-      total: calculated.total,
+      totalPaidNow: calculated.total,
       customer: {
         firstName: name,
         lastName,
@@ -107,7 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error) {
     console.error("[Flow create-cart-payment]", error instanceof Error ? error.message : error);
     const message = error instanceof Error ? error.message : "No fue posible crear el pago.";
-    const status = /no válido|sin tarifa|Destino|Producto|Cantidad|Carrito|Agrega|dirección|sucursal|Nombre|Apellido|RUT\/DNI/.test(message) ? 400 : 502;
+    const status = /no válido|sin tarifa|Destino|Producto|Cantidad|Carrito|Agrega|dirección|sucursal|Nombre|Apellido|RUT\/DNI|país|ciudad|internacional/i.test(message) ? 400 : 502;
     return Response.json({ error: message }, { status });
   }
 };
