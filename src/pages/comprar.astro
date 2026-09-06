@@ -57,12 +57,12 @@ const products = [
           <select id="delivery-type" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
             <option value="pickup">Retiro presencial en local</option>
             <option value="home">Envío a domicilio</option>
-            <option value="branch">Envío a sucursal</option>
+            <option value="branch">Envío a sucursal Chilexpress o Starken</option>
             <option value="international">Envío internacional — cotización posterior</option>
           </select>
 
           <div id="courier-wrap" class="hidden space-y-2">
-            <label class="block text-sm font-semibold text-terapia-text" for="courier">Transportista</label>
+            <label class="block text-sm font-semibold text-terapia-text" for="courier">Empresa de envío</label>
             <select id="courier" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
               <option value="chilexpress">Chilexpress</option>
               <option value="starken">Starken</option>
@@ -92,7 +92,7 @@ const products = [
             <div id="branch-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="branch-name">Sucursal de destino</label>
               <input id="branch-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
-              <p class="text-xs text-gray-500">Indica la sucursal de Chilexpress o Starken donde quieres retirar.</p>
+              <p class="text-xs text-gray-500">Indica la sucursal donde quieres retirar tu pedido.</p>
             </div>
           </div>
 
@@ -191,6 +191,7 @@ const products = [
 
     function effectiveCourier() {
       if (deliveryTypeEl.value === "pickup") return "retiro";
+      if (deliveryTypeEl.value === "home") return "blue";
       if (deliveryTypeEl.value === "international") return "international";
       return courierEl.value;
     }
@@ -225,7 +226,7 @@ const products = [
       const isBranch = deliveryType === "branch";
 
       pickupInfoEl.classList.toggle("hidden", !isPickup);
-      courierWrapEl.classList.toggle("hidden", !isDomestic);
+      courierWrapEl.classList.toggle("hidden", !isBranch);
       domesticDestinationEl.classList.toggle("hidden", !isDomestic);
       homeAddressFieldsEl.classList.toggle("hidden", !isHome);
       branchFieldsEl.classList.toggle("hidden", !isBranch);
@@ -233,8 +234,9 @@ const products = [
       internationalNoteEl.classList.toggle("hidden", !isInternational);
 
       if (isPickup) deliverySummaryEl.textContent = "Retiro en local";
+      else if (isHome) deliverySummaryEl.textContent = "Envío a domicilio";
       else if (isInternational) deliverySummaryEl.textContent = "Internacional — por cotizar";
-      else deliverySummaryEl.textContent = `${isHome ? "Domicilio" : "Sucursal"} · ${courierEl.options[courierEl.selectedIndex]?.text || ""}`;
+      else deliverySummaryEl.textContent = `Sucursal · ${courierEl.options[courierEl.selectedIndex]?.text || ""}`;
 
       payButton.textContent = isInternational ? "Pagar productos con Flow" : "Pagar con Flow";
       paymentNoteEl.textContent = isInternational
@@ -334,6 +336,10 @@ const products = [
       if (deliveryType === "international" && !city) return showError("Ingresa la ciudad de destino.", cityEl);
       if (deliveryType === "international" && !deliveryAddress) return showError("Ingresa la dirección internacional.", internationalAddressEl);
 
+      try {
+        sessionStorage.setItem("famoresCheckoutContact", JSON.stringify({ phone }));
+      } catch {}
+
       payButton.disabled = true;
       payButton.textContent = "Creando pago…";
       showError("");
@@ -341,7 +347,7 @@ const products = [
         const response = await fetch("/api/flow/create-cart-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, deliveryType, courier, region, commune, country, city, name, lastName, customerId, phone, email, deliveryAddress, branchName }),
+          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, deliveryAddress, branchName }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
