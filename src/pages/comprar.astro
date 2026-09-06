@@ -53,14 +53,21 @@ const products = [
         <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700 min-w-0" aria-live="polite"><p>Aún no agregas productos.</p></div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
-          <label class="block text-sm font-semibold text-terapia-text" for="courier">Forma de entrega</label>
-          <select id="courier" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
-            <option value="retiro">Retiro presencial en local</option>
-            <option value="blue">Envío a domicilio en Chile</option>
-            <option value="chilexpress">Envío a sucursal Chilexpress</option>
-            <option value="starken">Envío a sucursal Starken</option>
+          <label class="block text-sm font-semibold text-terapia-text" for="delivery-type">Forma de entrega</label>
+          <select id="delivery-type" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
+            <option value="pickup">Retiro presencial en local</option>
+            <option value="home">Envío a domicilio</option>
+            <option value="branch">Envío a sucursal Chilexpress o Starken</option>
             <option value="international">Envío internacional — cotización posterior</option>
           </select>
+
+          <div id="courier-wrap" class="hidden space-y-2">
+            <label class="block text-sm font-semibold text-terapia-text" for="courier">Empresa de envío</label>
+            <select id="courier" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
+              <option value="chilexpress">Chilexpress</option>
+              <option value="starken">Starken</option>
+            </select>
+          </div>
 
           <div id="pickup-info" class="rounded-xl bg-terapia-bg border border-stone-200 px-4 py-3 text-sm text-gray-700">
             <strong class="block text-terapia-text">Retiro en local</strong>
@@ -85,6 +92,7 @@ const products = [
             <div id="branch-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="branch-name">Sucursal de destino</label>
               <input id="branch-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
+              <p class="text-xs text-gray-500">Indica la sucursal donde quieres retirar tu pedido.</p>
             </div>
           </div>
 
@@ -109,11 +117,14 @@ const products = [
           <input id="customer-lastname" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="family-name" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-id">RUT / DNI</label>
           <input id="customer-id" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. 12.345.678-9 o documento extranjero" autocomplete="off" />
+          <label class="block text-sm font-semibold text-terapia-text" for="customer-phone">Teléfono</label>
+          <input id="customer-phone" type="tel" inputmode="tel" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. +56 9 1234 5678" autocomplete="tel" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
           <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
+          <div class="flex justify-between gap-3"><span>Entrega</span><strong id="delivery-summary" class="text-right">Retiro en local</strong></div>
           <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Caja</span><strong id="box">$0</strong></div>
@@ -133,6 +144,8 @@ const products = [
     const money = (value) => `$${Number(value || 0).toLocaleString("es-CL")}`;
     const communesByRegion = JSON.parse(document.getElementById("communes-data").textContent || "{}");
     const cards = Array.from(document.querySelectorAll("[data-product]"));
+    const deliveryTypeEl = document.getElementById("delivery-type");
+    const courierWrapEl = document.getElementById("courier-wrap");
     const courierEl = document.getElementById("courier");
     const regionEl = document.getElementById("region");
     const communeEl = document.getElementById("commune");
@@ -148,6 +161,7 @@ const products = [
     const internationalAddressEl = document.getElementById("international-address");
     const internationalNoteEl = document.getElementById("international-note");
     const paymentNoteEl = document.getElementById("payment-note");
+    const deliverySummaryEl = document.getElementById("delivery-summary");
     const errorEl = document.getElementById("cart-error");
     const payButton = document.getElementById("pay-button");
     let lastQuote = null;
@@ -175,6 +189,13 @@ const products = [
       });
     }
 
+    function effectiveCourier() {
+      if (deliveryTypeEl.value === "pickup") return "retiro";
+      if (deliveryTypeEl.value === "home") return "blue";
+      if (deliveryTypeEl.value === "international") return "international";
+      return courierEl.value;
+    }
+
     function showError(message, target) {
       if (!message) { errorEl.classList.add("hidden"); errorEl.textContent = ""; return; }
       errorEl.textContent = message;
@@ -197,16 +218,26 @@ const products = [
     }
 
     function updateDeliveryFields() {
-      const courier = courierEl.value;
-      const isPickup = courier === "retiro";
-      const isInternational = courier === "international";
-      const isHome = courier === "blue";
+      const deliveryType = deliveryTypeEl.value;
+      const isPickup = deliveryType === "pickup";
+      const isInternational = deliveryType === "international";
+      const isDomestic = deliveryType === "home" || deliveryType === "branch";
+      const isHome = deliveryType === "home";
+      const isBranch = deliveryType === "branch";
+
       pickupInfoEl.classList.toggle("hidden", !isPickup);
-      domesticDestinationEl.classList.toggle("hidden", isPickup || isInternational);
+      courierWrapEl.classList.toggle("hidden", !isBranch);
+      domesticDestinationEl.classList.toggle("hidden", !isDomestic);
       homeAddressFieldsEl.classList.toggle("hidden", !isHome);
-      branchFieldsEl.classList.toggle("hidden", isPickup || isInternational || isHome);
+      branchFieldsEl.classList.toggle("hidden", !isBranch);
       internationalFieldsEl.classList.toggle("hidden", !isInternational);
       internationalNoteEl.classList.toggle("hidden", !isInternational);
+
+      if (isPickup) deliverySummaryEl.textContent = "Retiro en local";
+      else if (isHome) deliverySummaryEl.textContent = "Envío a domicilio";
+      else if (isInternational) deliverySummaryEl.textContent = "Internacional — por cotizar";
+      else deliverySummaryEl.textContent = `Sucursal · ${courierEl.options[courierEl.selectedIndex]?.text || ""}`;
+
       payButton.textContent = isInternational ? "Pagar productos con Flow" : "Pagar con Flow";
       paymentNoteEl.textContent = isInternational
         ? "El despacho internacional se cotiza y cobra posteriormente."
@@ -217,6 +248,7 @@ const products = [
       const requestId = ++quoteRequestId;
       const items = getItems();
       updateAllCardStates();
+      updateDeliveryFields();
       lastQuote = null;
       showError("");
       if (!items.length) {
@@ -226,10 +258,11 @@ const products = [
         return;
       }
       payButton.disabled = true;
-      const courier = courierEl.value;
+      const courier = effectiveCourier();
       const region = regionEl.value.trim();
       const commune = communeEl.value.trim();
-      if (courier !== "retiro" && courier !== "international" && (!region || !commune)) {
+      const isDomestic = deliveryTypeEl.value === "home" || deliveryTypeEl.value === "branch";
+      if (isDomestic && (!region || !commune)) {
         showError("Selecciona región y comuna para calcular el despacho.", !region ? regionEl : communeEl);
         return;
       }
@@ -262,6 +295,7 @@ const products = [
       input.addEventListener("focus", () => input.select());
     });
 
+    deliveryTypeEl.addEventListener("change", () => { updateDeliveryFields(); scheduleQuote(); });
     courierEl.addEventListener("change", () => { updateDeliveryFields(); scheduleQuote(); });
     regionEl.addEventListener("change", () => { populateCommunes(); scheduleQuote(); });
     communeEl.addEventListener("change", scheduleQuote);
@@ -274,26 +308,37 @@ const products = [
       const nameEl = document.getElementById("customer-name");
       const lastNameEl = document.getElementById("customer-lastname");
       const idEl = document.getElementById("customer-id");
+      const phoneEl = document.getElementById("customer-phone");
       const emailEl = document.getElementById("customer-email");
       const name = nameEl.value.trim();
       const lastName = lastNameEl.value.trim();
       const customerId = idEl.value.trim();
+      const phone = phoneEl.value.trim();
       const email = emailEl.value.trim();
-      const courier = courierEl.value;
+      const deliveryType = deliveryTypeEl.value;
+      const courier = effectiveCourier();
       const country = countryEl.value.trim();
       const city = cityEl.value.trim();
-      const deliveryAddress = courier === "international" ? internationalAddressEl.value.trim() : deliveryAddressEl.value.trim();
+      const deliveryAddress = deliveryType === "international" ? internationalAddressEl.value.trim() : deliveryAddressEl.value.trim();
       const branchName = branchNameEl.value.trim();
+      const region = regionEl.value.trim();
+      const commune = communeEl.value.trim();
 
       if (!name) return showError("Ingresa tu nombre.", nameEl);
       if (!lastName) return showError("Ingresa tu apellido.", lastNameEl);
       if (!customerId) return showError("Ingresa tu RUT o DNI.", idEl);
+      if (phone.replace(/\D/g, "").length < 8) return showError("Ingresa un teléfono válido.", phoneEl);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Ingresa un correo válido.", emailEl);
-      if (courier === "blue" && !deliveryAddress) return showError("Ingresa la dirección de entrega.", deliveryAddressEl);
-      if ((courier === "chilexpress" || courier === "starken") && !branchName) return showError("Indica la sucursal de destino.", branchNameEl);
-      if (courier === "international" && !country) return showError("Ingresa el país de destino.", countryEl);
-      if (courier === "international" && !city) return showError("Ingresa la ciudad de destino.", cityEl);
-      if (courier === "international" && !deliveryAddress) return showError("Ingresa la dirección internacional.", internationalAddressEl);
+      if ((deliveryType === "home" || deliveryType === "branch") && (!region || !commune)) return showError("Selecciona región y comuna.", !region ? regionEl : communeEl);
+      if (deliveryType === "home" && !deliveryAddress) return showError("Ingresa la dirección de entrega.", deliveryAddressEl);
+      if (deliveryType === "branch" && !branchName) return showError("Indica la sucursal de destino.", branchNameEl);
+      if (deliveryType === "international" && !country) return showError("Ingresa el país de destino.", countryEl);
+      if (deliveryType === "international" && !city) return showError("Ingresa la ciudad de destino.", cityEl);
+      if (deliveryType === "international" && !deliveryAddress) return showError("Ingresa la dirección internacional.", internationalAddressEl);
+
+      try {
+        sessionStorage.setItem("famoresCheckoutContact", JSON.stringify({ phone }));
+      } catch {}
 
       payButton.disabled = true;
       payButton.textContent = "Creando pago…";
@@ -302,7 +347,7 @@ const products = [
         const response = await fetch("/api/flow/create-cart-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, courier, region: regionEl.value.trim(), commune: communeEl.value.trim(), country, city, name, lastName, customerId, email, deliveryAddress, branchName }),
+          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, deliveryAddress, branchName }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
@@ -310,7 +355,7 @@ const products = [
       } catch (error) {
         showError(error instanceof Error ? error.message : "No fue posible crear el pago.");
         payButton.disabled = false;
-        payButton.textContent = courier === "international" ? "Pagar productos con Flow" : "Pagar con Flow";
+        payButton.textContent = deliveryType === "international" ? "Pagar productos con Flow" : "Pagar con Flow";
       }
     });
 

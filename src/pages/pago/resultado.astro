@@ -22,7 +22,7 @@ const statusInfo: Record<number, { title: string; message: string; icon: string 
   },
   2: {
     title: "Pago confirmado",
-    message: "Tu pago fue confirmado por Flow. Ahora confirma el pedido por WhatsApp para que Famores reciba el resumen y los datos de entrega.",
+    message: "Tu pago fue confirmado por Flow y el pedido quedó registrado con sus datos de entrega.",
     icon: "✅",
   },
   3: {
@@ -71,7 +71,7 @@ const shippingLine = orderData?.internationalShippingQuotePending
     : "";
 
 const whatsappMessage = payment && Number(payment.status) === 2
-  ? `¡Hola Famores! Mi pago fue confirmado por Flow y quiero confirmar mi pedido.\n\n*Pedido*\n${itemLines}\n\n*Pago*\n- Orden Famores: ${payment.commerceOrder || ""}\n- Orden Flow: ${payment.flowOrder || ""}\n- Total pagado ahora: $${Number(payment.amount || 0).toLocaleString("es-CL")}\n${shippingLine}\n\n*Entrega*\n- Modalidad: ${orderData?.deliveryMethod || orderData?.courier || "No especificada"}${locationLines ? `\n${locationLines}` : ""}\n\n*Mis datos*\n- Nombre: ${customer?.fullName || `${customer?.firstName || ""} ${customer?.lastName || ""}`.trim() || "No informado"}\n- RUT/DNI: ${customer?.customerId || "No informado"}\n- Correo: ${customer?.email || payment?.payer || "No informado"}\n\nGracias. Quedo atento/a a la confirmación de Famores.${orderData?.internationalShippingQuotePending ? "\n\n*Nota:* El despacho internacional queda pendiente de cotización posterior." : ""}`
+  ? `¡Hola Famores! Mi pago fue confirmado por Flow.\n\n*Pedido*\n${itemLines}\n\n*Pago*\n- Orden Famores: ${payment.commerceOrder || ""}\n- Orden Flow: ${payment.flowOrder || ""}\n- Total pagado ahora: $${Number(payment.amount || 0).toLocaleString("es-CL")}\n${shippingLine}\n\n*Entrega*\n- Modalidad: ${orderData?.deliveryMethod || orderData?.courier || "No especificada"}${locationLines ? `\n${locationLines}` : ""}\n\n*Mis datos*\n- Nombre: ${customer?.fullName || `${customer?.firstName || ""} ${customer?.lastName || ""}`.trim() || "No informado"}\n- RUT/DNI: ${customer?.customerId || "No informado"}\n- Correo: ${customer?.email || payment?.payer || "No informado"}\n\nGracias.${orderData?.internationalShippingQuotePending ? "\n\n*Nota:* El despacho internacional queda pendiente de cotización posterior." : ""}`
   : "";
 
 const whatsappUrl = whatsappMessage
@@ -99,11 +99,10 @@ const whatsappUrl = whatsappMessage
         </div>
         {whatsappUrl && (
           <div class="mt-6 rounded-xl border border-green-200 bg-green-50 p-4">
-            <p class="text-sm text-green-900"><strong>Último paso:</strong> abre WhatsApp y envía el mensaje preparado. Así Famores recibe inmediatamente tu pedido, correo y datos de entrega.</p>
+            <p class="text-sm text-green-900"><strong>Opcional:</strong> puedes avisarnos por WhatsApp para una coordinación más rápida. Tu pedido ya quedó asociado al pago en Flow aunque no envíes este mensaje.</p>
             <a id="whatsapp-confirm" href={whatsappUrl} class="mt-4 w-full inline-flex items-center justify-center rounded-xl bg-green-700 text-white font-semibold py-3 px-4 hover:bg-green-800 smooth-transition">
-              Confirmar pedido por WhatsApp
+              Avisar por WhatsApp
             </a>
-            <p class="mt-2 text-xs text-green-800">El mensaje queda preparado automáticamente; tú solo debes presionar Enviar en WhatsApp.</p>
           </div>
         )}
       </>
@@ -121,10 +120,20 @@ const whatsappUrl = whatsappMessage
   </main>
 
   {whatsappUrl && (
-    <script is:inline define:vars={{ whatsappUrl }}>
-      window.setTimeout(() => {
-        window.location.href = whatsappUrl;
-      }, 1800);
+    <script is:inline>
+      try {
+        const raw = sessionStorage.getItem("famoresCheckoutContact");
+        const saved = raw ? JSON.parse(raw) : null;
+        const phone = String(saved?.phone || "").trim();
+        const link = document.getElementById("whatsapp-confirm");
+        if (phone && link) {
+          const url = new URL(link.href);
+          const text = url.searchParams.get("text") || "";
+          url.searchParams.set("text", `${text}\n- Teléfono: ${phone}`);
+          link.href = url.toString();
+        }
+        sessionStorage.removeItem("famoresCheckoutContact");
+      } catch {}
     </script>
   )}
 </Layout>
