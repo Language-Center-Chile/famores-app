@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
-import { signFlowParams } from "./flow";
+import { sanitizeFlowPostInput, signFlowParams } from "./flow";
 
 describe("signFlowParams", () => {
   it("signs params sorted alphabetically by key, independent of insertion order", () => {
@@ -13,7 +13,6 @@ describe("signFlowParams", () => {
   it("matches a manually computed HMAC-SHA256 signature over sorted key+value pairs", () => {
     const secret = "test-secret";
     const params = { amount: 1000, apiKey: "abc", commerceOrder: "FAM-1" };
-    // Keys sorted alphabetically: amount, apiKey, commerceOrder
     const toSign = "amount1000apiKeyabccommerceOrderFAM-1";
     const expected = crypto.createHmac("sha256", secret).update(toSign).digest("hex");
     expect(signFlowParams(params, secret)).toBe(expected);
@@ -31,5 +30,27 @@ describe("signFlowParams", () => {
     const signedA = signFlowParams(params, "secret-a");
     const signedB = signFlowParams(params, "secret-b");
     expect(signedA).not.toBe(signedB);
+  });
+});
+
+describe("sanitizeFlowPostInput", () => {
+  it("removes optional from payment/create so Flow cannot reject an oversized payload", () => {
+    const input = {
+      commerceOrder: "FAM-1",
+      amount: 25000,
+      email: "cliente@example.com",
+      optional: JSON.stringify({ veryLargeOrder: "x".repeat(5000) }),
+    };
+
+    const sanitized = sanitizeFlowPostInput("/payment/create", input);
+
+    expect(sanitized.optional).toBeUndefined();
+    expect(sanitized.commerceOrder).toBe("FAM-1");
+    expect(sanitized.amount).toBe(25000);
+  });
+
+  it("keeps optional for other Flow POST endpoints", () => {
+    const sanitized = sanitizeFlowPostInput("/other", { optional: "{\"x\":1}" });
+    expect(sanitized.optional).toBe("{\"x\":1}");
   });
 });

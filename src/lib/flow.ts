@@ -27,9 +27,24 @@ export function signFlowParams(params: FlowParams, secretKey: string) {
   return crypto.createHmac("sha256", secretKey).update(toSign).digest("hex");
 }
 
+export function sanitizeFlowPostInput(path: string, input: Omit<FlowParams, "apiKey">) {
+  const sanitized: Omit<FlowParams, "apiKey"> = { ...input };
+
+  // Flow's payment/create accepts `optional`, but rejects oversized values.
+  // Famores does not need this field to create or confirm a payment: the
+  // commerceOrder, amount, payer and token remain available through Flow.
+  // Omit it entirely to prevent checkout failures caused by payload size.
+  if (path === "/payment/create") {
+    delete sanitized.optional;
+  }
+
+  return sanitized;
+}
+
 export async function flowPost(path: string, input: Omit<FlowParams, "apiKey">) {
   const config = getFlowConfig();
-  const params: FlowParams = { apiKey: config.apiKey, ...input };
+  const safeInput = sanitizeFlowPostInput(path, input);
+  const params: FlowParams = { apiKey: config.apiKey, ...safeInput };
   const signature = signFlowParams(params, config.secretKey);
   const body = new URLSearchParams();
 
