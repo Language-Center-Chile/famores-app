@@ -4,9 +4,16 @@ import { passwordHash } from './account';
 import { PRIVACY_VERSION, privacySettings } from './privacy';
 const digest = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 const day = 24*60*60*1000;
+function accountSiteUrl() {
+  const url = new URL(process.env.PUBLIC_SITE_URL || '');
+  const local = url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname);
+  if ((url.protocol !== 'https:' && !local) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('Dominio de cuentas no configurado.');
+  return url;
+}
 export function customerRegistrationEnabled() {
   try {
-    return privacySettings().ready && /^[a-f0-9]{64}$/.test(process.env.FAMORES_MAIL_ENCRYPTION_KEY || '') && new URL(process.env.FAMORES_ACCOUNT_MAIL_WEBHOOK || '').protocol==='https:' && Boolean(process.env.FAMORES_ACCOUNT_MAIL_TOKEN && process.env.PUBLIC_SITE_URL);
+    accountSiteUrl();
+    return privacySettings().ready && /^[a-f0-9]{64}$/.test(process.env.FAMORES_MAIL_ENCRYPTION_KEY || '') && new URL(process.env.FAMORES_ACCOUNT_MAIL_WEBHOOK || '').protocol==='https:' && Boolean(process.env.FAMORES_ACCOUNT_MAIL_TOKEN);
   } catch { return false; }
 }
 function mailKey() {
@@ -24,8 +31,7 @@ export function decryptMail(value: string) {
 }
 function queueToken(id: string, email: string, purpose: 'verify' | 'reset') {
   const token=crypto.randomBytes(32).toString('hex');
-  const publicUrl=process.env.PUBLIC_SITE_URL;
-  if (!publicUrl || (!publicUrl.startsWith('https://') && !/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(publicUrl))) throw new Error('Dominio de cuentas no configurado.');
+  const publicUrl=accountSiteUrl();
   db().prepare('DELETE FROM emailTokens WHERE customerId=? AND purpose=?').run(id,purpose);
   db().prepare('DELETE FROM accountMail WHERE customerId=? AND purpose=?').run(id,purpose);
   db().prepare('INSERT INTO emailTokens(tokenHash,customerId,purpose,expiresAt) VALUES(?,?,?,?)').run(digest(token),id,purpose,Date.now()+(purpose==='verify'?day:60*60*1000));

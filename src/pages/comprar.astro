@@ -116,7 +116,7 @@ if(buyer) Astro.response.headers.set('Cache-Control','no-store');
             <label class="block text-sm font-semibold text-terapia-text" for="city">Ciudad</label>
             <input id="city" value={savedProfile.city||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="address-level2" placeholder="Ej. Mendoza" />
             <label class="block text-sm font-semibold text-terapia-text" for="international-address">Dirección</label>
-            <input id="international-address" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="street-address" placeholder="Calle, número, código postal" />
+            <input id="international-address" value={savedProfile.deliveryAddress||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="street-address" placeholder="Calle, número, código postal" />
           </div>
         </div>
 

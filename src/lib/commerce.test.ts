@@ -99,6 +99,16 @@ describe('account boundaries',()=>{
   });
 });
 describe('durable notifications',()=>{
+  it('reports queued notifications remaining beyond the delivery batch',async()=>{
+    for(let i=0;i<21;i++) submitApplication({name:'Applicant',email:'applicant@example.test'});
+    process.env.FAMORES_NOTIFICATION_WEBHOOK='https://notifications.example.test/webhook';process.env.FAMORES_NOTIFICATION_TOKEN='test-token';
+    const fetchMock=vi.fn().mockImplementation(async()=>new Response('',{status:200}));vi.stubGlobal('fetch',fetchMock);
+    expect(await dispatchNotifications()).toEqual({sent:20,pending:true});
+    expect(await dispatchNotifications()).toEqual({sent:1,pending:false});
+    expect(fetchMock).toHaveBeenCalledTimes(21);
+    const eventIds=fetchMock.mock.calls.map(call=>JSON.parse(call[1].body).eventId);
+    expect(new Set(eventIds).size).toBe(21);
+  });
   it('keeps unconfigured and failed deliveries pending, then marks successful delivery',async()=>{
     coupon(); reserveOrder('one',cart,'TEST10',{}); confirmOrder(paid());
     expect(await dispatchNotifications()).toEqual({sent:0,pending:true});

@@ -27,6 +27,18 @@ it('creates only buyer roles and requires proof of email possession before login
   expect(()=>dashboard(account!)).toThrow();expect(customerData(account!).account.profile).toEqual({});
   expect(customerData(account!).consents[0]).toMatchObject({purpose:'customer_account',granted:1,version:PRIVACY_VERSION});
 });
+it('disables registration for invalid public origins before storing customers or mail',async()=>{
+  for (const origin of ['not-a-url','http://famores.com','https://user:password@famores.com','https://famores.com/path','https://famores.com?redirect=other','https://famores.com#fragment']) {
+    process.env.PUBLIC_SITE_URL=origin;
+    expect(customerRegistrationEnabled()).toBe(false);
+    await expect(registration()).rejects.toThrow('Registro no disponible');
+  }
+  expect(db().prepare('SELECT COUNT(*) AS n FROM customers').get()?.n).toBe(0);
+  expect(db().prepare('SELECT COUNT(*) AS n FROM accountMail').get()?.n).toBe(0);
+  for (const origin of ['https://famores.com','https://famores.com/','http://localhost:3000','http://127.0.0.1:3000']) {
+    process.env.PUBLIC_SITE_URL=origin;expect(customerRegistrationEnabled()).toBe(true);
+  }
+});
 it('rejects expired verification tokens and does not overwrite an existing account',async()=>{
   await registration();const token=latestToken();db().prepare('UPDATE emailTokens SET expiresAt=0').run();expect(await verifyCustomer(token,'test-only-password')).toBe(false);
   await registerCustomer({name:'Attacker',email:'buyer@example.test',consent:true});

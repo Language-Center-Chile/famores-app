@@ -60,7 +60,9 @@ try {
   assert.equal((await timedFetch(base+'/panel',{headers:{Cookie:buyerCookie},redirect:'manual'})).headers.get('location'),'/mi-cuenta');
   assert.equal((await post('/api/account/profile',{name:'Buyer',phone:'test phone',deliveryAddress:'Private buyer address',customerId:'never-save',saveDetails:'yes'},buyerCookie)).status,303);
   const ownPage=await (await timedFetch(base+'/mi-cuenta',{headers:{Cookie:buyerCookie}})).text();assert(ownPage.includes('BUYER-OWN-ORDER'));assert(!ownPage.includes('BUYER-OTHER-ORDER'));
-  const checkout=await timedFetch(base+'/comprar',{headers:{Cookie:buyerCookie}});assert.equal(checkout.headers.get('cache-control'),'no-store');assert((await checkout.text()).includes('Private buyer address'));
+  const checkout=await timedFetch(base+'/comprar',{headers:{Cookie:buyerCookie}});assert.equal(checkout.headers.get('cache-control'),'no-store');const checkoutHtml=await checkout.text();assert(checkoutHtml.includes('Private buyer address'));
+  assert.match(checkoutHtml, /id="international-address"[^>]*value="Private buyer address"/);
+  const guestCheckout=await (await timedFetch(base+'/comprar')).text();assert(!guestCheckout.includes('Private buyer address'));
   const exported=await (await timedFetch(base+'/api/account/export',{headers:{Cookie:buyerCookie}})).json();assert.equal(exported.orders.length,1);assert.equal(exported.orders[0].id,'BUYER-OWN-ORDER');assert(!JSON.stringify(exported.account.profile).includes('never-save'));assert(!JSON.stringify(exported).includes(passwordHash));
   assert.equal((await timedFetch(base+'/api/account/export',{headers:{Cookie:sellerCookie}})).status,403);
   assert.equal((await post('/api/account/profile',{},buyerCookie,'https://foreign.example')).status,403);

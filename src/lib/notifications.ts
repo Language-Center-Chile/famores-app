@@ -13,5 +13,6 @@ export async function dispatchNotifications() {
     if (!response.ok) throw new Error('No fue posible entregar la notificación.');
     db().prepare('UPDATE notifications SET deliveredAt=? WHERE id=?').run(Date.now(),String(event.id)); sent++;
   }
-  return { sent, pending: false };
+  const remaining = db().prepare('SELECT 1 FROM notifications WHERE deliveredAt IS NULL LIMIT 1').get();
+  return { sent, pending: Boolean(remaining) };
 }
