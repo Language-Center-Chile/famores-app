@@ -1,0 +1,9 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { privateHeaders } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+---
+<Layout title="Recupera tu acceso | Famores"><main id="contenido-principal" class="max-w-lg mx-auto px-6 py-12"><a href="/ingresar">← Ingresar</a><h1 class="text-3xl font-bold my-6">Recuperar contraseña</h1>
+  {Astro.url.searchParams.has('sent')?<p role="status">Si existe una cuenta de comprador verificada, se ha registrado el envío de un enlace de recuperación. Revisa tu correo.</p>:<form method="post" action="/api/account/recover" class="grid gap-3"><label for="email">Correo</label><input name="email" id="email" type="email" required maxlength="160" autocomplete="email" class="border rounded-xl p-3"/><button class="rounded-xl bg-terapia-sage text-white p-3">Solicitar enlace</button></form>}
+  <p class="my-5 text-sm">Vendedores y administración: contacta a Famores para gestionar tu acceso.</p>
+</main></Layout>

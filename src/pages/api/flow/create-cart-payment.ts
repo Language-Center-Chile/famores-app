@@ -1,16 +1,23 @@
 import type { APIRoute } from "astro";
 import crypto from "node:crypto";
 import { quote, reserveOrder, commerceEnabled, db, consumeAttempt } from "../../../lib/commerce";
+import { sessionAccount, SESSION_COOKIE, sameOrigin } from "../../../lib/account";
+import { saveCustomerProfile } from "../../../lib/customer";
 import { flowPost } from "../../../lib/flow";
 
 function clean(value: unknown, max = 160) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const body = await request.json();
     const email = clean(body.email).toLowerCase();
+    const account = commerceEnabled() ? sessionAccount(cookies?.get(SESSION_COOKIE)?.value) : null;
+    const buyer = account?.role === 'customer' ? account : null;
+    if (buyer && !sameOrigin(request)) return Response.json({error:'Origen no permitido.'},{status:403});
+    if (buyer && email !== buyer.email) return Response.json({error:'Usa el correo de tu cuenta o cierra sesión para comprar como invitado.'},{status:400});
+    if (body.saveDetails === true && !buyer) return Response.json({error:'Inicia sesión como comprador para guardar tus datos.'},{status:400});
     const name = clean(body.name, 120);
     const lastName = clean(body.lastName, 120);
     const customerId = clean(body.customerId, 40);
@@ -51,8 +58,9 @@ export const POST: APIRoute = async ({ request }) => {
     const commerceOrder = `FAM-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
     const customer = { name, lastName, customerId, email, phone: clean(body.phone, 60), courier, region, commune, country, city, deliveryAddress, branchName };
     const calculated = commerceEnabled()
-      ? reserveOrder(commerceOrder, selection, body.couponCode, customer)
+      ? reserveOrder(commerceOrder, selection, body.couponCode, customer, buyer?.id || null)
       : quote(selection, body.couponCode);
+    if (buyer && body.saveDetails === true) saveCustomerProfile(buyer, customer, true);
     const requestOrigin = new URL(request.url).origin;
     const publicBaseUrl = (process.env.PUBLIC_SITE_URL || requestOrigin).replace(/\/$/, "");
     const itemSummary = calculated.items.map((item) => `${item.quantity}x ${item.product}`).join(", ");

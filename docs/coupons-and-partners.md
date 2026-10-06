@@ -30,8 +30,8 @@ al hosting, DNS, credenciales o permisos existentes.
 
 ## Acceso y privacidad
 
-Compradores: compra sin cuenta. Vendedores: cuentas aprobadas provisionadas por
-el operador; registro y recuperación de contraseña no son autoservicio.
+Compradores: compra como invitado o con cuenta opcional y correo verificado. Vendedores: cuentas aprobadas provisionadas por
+el operador; para vendedores/administración el alta y la recuperación siguen siendo manuales; compradores tienen registro y recuperación por correo.
 Administrador: conjunto de pedidos, cupones y solicitudes. Vendedor: únicamente
 su propia atribución por `sellerId`, sin email, RUT, teléfono o dirección del
 comprador. La base sí conserva el detalle necesario para operar el pedido.
@@ -103,6 +103,8 @@ visibles; métricas de pagos calculadas sobre todo el historial. La base puede c
 política de retención, exportaciones y borrado de solicitudes aún no están incluidos.
 El esquema inicial se crea al abrir DB; cambios futuros necesitan migraciones.
 No hay integración automática a Sheets/orquestador ni liquidación de comisiones.
+
+La ampliación de compradores y la preparación de privacidad se detallan en [privacidad y cuentas](privacy-and-customers.md).
 
 ## Verificación
 

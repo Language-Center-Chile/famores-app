@@ -1,4 +1,7 @@
 ---
+import { commerceEnabled } from '../lib/commerce';
+import { sessionAccount, SESSION_COOKIE } from '../lib/account';
+import { customerData } from '../lib/customer';
 import Layout from "../layouts/Layout.astro";
 import { communesByRegion, regions } from "../data/chile-communes";
 
@@ -10,6 +13,10 @@ const products = [
   { slug: "mascota-pintada", name: "Mascota Pintada", price: 4500, image: "/images/products/mascota-pintada-2.jpg" },
   { slug: "mascota-sin-pintar", name: "Mascota Sin Pintar", price: 2500, image: "/images/products/mascota-sin-pintar-1.jpg" },
 ];
+const loggedAccount=commerceEnabled()?sessionAccount(Astro.cookies.get(SESSION_COOKIE)?.value):null;
+const buyer=loggedAccount?.role==='customer'?loggedAccount:null;
+const savedProfile=buyer?customerData(buyer).account.profile:{};
+if(buyer) Astro.response.headers.set('Cache-Control','no-store');
 ---
 
 <Layout title="Comprar Famores">
@@ -52,6 +59,9 @@ const products = [
         <h2 id="carrito-heading" class="text-xl font-bold text-terapia-text">Tu carrito</h2>
         <div id="cart-lines" class="mt-4 space-y-2 text-sm text-gray-700 min-w-0" aria-live="polite"><p>Aún no agregas productos.</p></div>
 
+        <section class="border rounded-xl p-4 mt-5" aria-label="Cuenta de comprador">
+          {buyer ? <p>Comprando con tu cuenta: {buyer.email}. <a href="/mi-cuenta" class="underline">Mi cuenta</a></p> : <><p>Puedes comprar como invitado, sin registro.</p><p><a href="/ingresar" class="underline">Ingresar</a> · <a href="/registrarse" class="underline">Crear cuenta para futuras compras</a></p></>}
+        </section>
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
           <label class="block text-sm font-semibold text-terapia-text" for="delivery-type">Forma de entrega</label>
           <select id="delivery-type" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
@@ -79,19 +89,19 @@ const products = [
             <label class="block text-sm font-semibold text-terapia-text" for="region">Región</label>
             <select id="region" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white">
               <option value="">Selecciona región</option>
-              {regions.map((region) => <option value={region}>{region}</option>)}
+              {regions.map((region) => <option value={region} selected={region===savedProfile.region}>{region}</option>)}
             </select>
             <label class="block text-sm font-semibold text-terapia-text" for="commune">Comuna</label>
-            <select id="commune" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white" disabled>
+            <select id="commune" data-saved-commune={savedProfile.commune||''} class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2 bg-white" disabled>
               <option value="">Selecciona primero una región</option>
             </select>
             <div id="home-address-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="delivery-address">Dirección de entrega</label>
-              <input id="delivery-address" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Calle, número, depto/casa" autocomplete="street-address" />
+              <input id="delivery-address" value={savedProfile.deliveryAddress||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Calle, número, depto/casa" autocomplete="street-address" />
             </div>
             <div id="branch-fields" class="hidden space-y-3">
               <label class="block text-sm font-semibold text-terapia-text" for="branch-name">Sucursal de destino</label>
-              <input id="branch-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
+              <input id="branch-name" value={savedProfile.branchName||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Nombre o dirección de la sucursal" />
               <p class="text-xs text-gray-500">Indica la sucursal donde quieres retirar tu pedido.</p>
             </div>
           </div>
@@ -102,9 +112,9 @@ const products = [
               <span>Pagas ahora los productos y el embalaje. El costo de envío se cotiza después según país, ciudad, peso y transportista.</span>
             </div>
             <label class="block text-sm font-semibold text-terapia-text" for="country">País</label>
-            <input id="country" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="country-name" placeholder="Ej. Argentina" />
+            <input id="country" value={savedProfile.country||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="country-name" placeholder="Ej. Argentina" />
             <label class="block text-sm font-semibold text-terapia-text" for="city">Ciudad</label>
-            <input id="city" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="address-level2" placeholder="Ej. Mendoza" />
+            <input id="city" value={savedProfile.city||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="address-level2" placeholder="Ej. Mendoza" />
             <label class="block text-sm font-semibold text-terapia-text" for="international-address">Dirección</label>
             <input id="international-address" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="street-address" placeholder="Calle, número, código postal" />
           </div>
@@ -112,15 +122,15 @@ const products = [
 
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-3">
           <label class="block text-sm font-semibold text-terapia-text" for="customer-name">Nombre</label>
-          <input id="customer-name" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="given-name" />
+          <input id="customer-name" value={savedProfile.name||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="given-name" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-lastname">Apellido</label>
-          <input id="customer-lastname" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="family-name" />
+          <input id="customer-lastname" value={savedProfile.lastName||''} type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="family-name" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-id">RUT / DNI</label>
           <input id="customer-id" type="text" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. 12.345.678-9 o documento extranjero" autocomplete="off" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-phone">Teléfono</label>
-          <input id="customer-phone" type="tel" inputmode="tel" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. +56 9 1234 5678" autocomplete="tel" />
+          <input id="customer-phone" value={savedProfile.phone||''} type="tel" inputmode="tel" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" placeholder="Ej. +56 9 1234 5678" autocomplete="tel" />
           <label class="block text-sm font-semibold text-terapia-text" for="customer-email">Correo</label>
-          <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
+          <input id="customer-email" value={buyer?.email||''} readonly={Boolean(buyer)} type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
         <div class="border-t border-stone-200 mt-5 pt-5">
@@ -140,6 +150,8 @@ const products = [
         <p id="international-note" class="hidden mt-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 text-sm">El despacho internacional no está incluido en este total. Famores enviará la cotización del envío posteriormente.</p>
         <p id="cart-error" class="hidden mt-4 rounded-xl bg-red-50 text-red-700 px-4 py-3 text-sm" role="alert"></p>
         <button id="pay-button" type="button" class="w-full min-h-[48px] mt-5 rounded-xl bg-terapia-sage text-white font-bold py-3 px-4 disabled:opacity-50">Pagar con Flow</button>
+        <p class="text-xs mt-4">Usaremos tus datos para gestionar el pago y la entrega. <a href="/privacidad" class="underline" target="_blank" rel="noopener">Cómo tratamos tus datos</a>.</p>
+        {buyer && <label class="block text-sm mt-3"><input id="save-details" type="checkbox"/> Quiero guardar o actualizar estos datos para mi próxima compra. No incluye RUT/DNI ni tarjetas. Podré retirarlos desde Mi cuenta.</label>}
         <p id="payment-note" class="text-xs text-gray-500 mt-3">El total se recalcula en el servidor antes de crear el pago.</p>
       </aside>
     </div>
@@ -353,9 +365,6 @@ const products = [
       if (deliveryType === "international" && !city) return showError("Ingresa la ciudad de destino.", cityEl);
       if (deliveryType === "international" && !deliveryAddress) return showError("Ingresa la dirección internacional.", internationalAddressEl);
 
-      try {
-        sessionStorage.setItem("famoresCheckoutContact", JSON.stringify({ phone }));
-      } catch {}
 
       payButton.disabled = true;
       payButton.textContent = "Creando pago…";
@@ -364,7 +373,7 @@ const products = [
         const response = await fetch("/api/flow/create-cart-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, phone, deliveryAddress, branchName, couponCode }),
+          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, phone, deliveryAddress, branchName, couponCode, saveDetails: Boolean(document.getElementById("save-details")?.checked) }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");
@@ -382,6 +391,7 @@ const products = [
       if (card) card.querySelector(".qty-input").value = "1";
     }
     populateCommunes();
+    if (communeEl.dataset.savedCommune && Array.from(communeEl.options).some(option=>option.value===communeEl.dataset.savedCommune)) communeEl.value=communeEl.dataset.savedCommune;
     updateDeliveryFields();
     updateAllCardStates();
     refreshQuote();

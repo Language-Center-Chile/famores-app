@@ -1,15 +1,17 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { commerceEnabled, dashboard, accounts } from '../lib/commerce';
+import { commerceEnabled, dashboard, accounts, db } from '../lib/commerce';
 import { sessionAccount, SESSION_COOKIE, privateHeaders } from '../lib/account';
 Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
 const account = commerceEnabled() ? sessionAccount(Astro.cookies.get(SESSION_COOKIE)?.value) : null;
 if (!account) return Astro.redirect('/ingresar',303);
+if (account.role === 'customer') return Astro.redirect('/mi-cuenta',303);
 const data = dashboard(account);
 const money = (value: unknown) => '$'+Number(value||0).toLocaleString('es-CL');
 const date = (value: unknown) => new Date(Number(value)).toLocaleDateString('es-CL',{timeZone:'America/Santiago'});
 const statuses: Record<number,string> = {1:'Pendiente',2:'Pagado',3:'Rechazado',4:'Anulado'};
 const admin = account.role === 'admin';
+const privacyRequests=admin?db().prepare('SELECT * FROM privacyRequests ORDER BY createdAt DESC LIMIT 100').all():[];
 const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
 ---
 <Layout title="Panel privado | Famores">
@@ -41,6 +43,7 @@ const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
     <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr><th>Pedido</th><th>Fecha</th><th>Cupón</th><th>Descuento</th><th>Total</th><th>Estado</th></tr></thead><tbody>{data.orders.map(o=><tr><td class="p-3">{o.id}</td><td>{date(o.createdAt)}</td><td>{o.couponCode || '—'}</td><td>{money(o.discount)}</td><td>{money(o.total)}</td><td>{statuses[Number(o.status)]}{admin && Number(o.status)!==2 && <form method="post" action="/api/account/reconcile"><input type="hidden" name="orderId" value={String(o.id)}/><button class="underline">Verificar en Flow</button></form>}</td></tr>)}</tbody></table></div>
     {!data.orders.length && <p class="my-4">Todavía no hay pedidos registrados.</p>}
     {admin && <section class="my-8"><h2 class="text-xl font-bold">Solicitudes de alianzas</h2><p class="text-sm my-3">Las solicitudes no crean cuentas automáticamente. Revisa y acuerda las condiciones antes de habilitar al vendedor.</p>{data.applications.map(a=>{ const d=JSON.parse(String(a.details)); return <article class="bg-white border rounded-xl p-4 my-3"><h3 class="font-bold">{d.name} · {d.business}</h3><p>{d.city} · {d.mode} · {date(a.createdAt)}</p><p>{d.email} · {d.phone}</p><p>{d.social}</p><p>{d.quantity}</p></article>; })}{!data.applications.length && <p>Aún no hay solicitudes.</p>}</section>}
-    {admin && <section class="my-8"><h2 class="text-xl font-bold">Notificaciones</h2><p class="text-sm my-3">Los avisos quedan registrados aquí. La entrega por correo requiere conectar el flujo de notificaciones.</p><form method="post" action="/api/account/notifications"><button class="underline">Reintentar avisos pendientes</button></form><ul>{data.notifications.map(n=><li class="my-3">{date(n.createdAt)} · {n.type==='sale_paid'?'Venta pagada':'Nueva solicitud de alianza'} · {n.deliveredAt?'Entregado al flujo':'Pendiente de entrega'} · {n.payload}</li>)}</ul></section>}
+    {admin && <section class="my-8"><h2 class="text-xl font-bold">Solicitudes de privacidad</h2><p>Verifica la identidad por medios proporcionales y tramita cada solicitud según el régimen aplicable. El envío del formulario no autoriza revelar datos a quien escribe.</p>{privacyRequests.map(r=>{const d=JSON.parse(String(r.details));return <article class="border rounded-xl p-4 my-3"><p>{date(r.createdAt)} · {d.kind} · {d.email}</p><p>{d.message}</p></article>;})}</section>}
+    {admin && <section class="my-8"><h2 class="text-xl font-bold">Notificaciones</h2><p class="text-sm my-3">Los avisos quedan registrados aquí. La entrega por correo requiere conectar el flujo de notificaciones.</p><form method="post" action="/api/account/notifications"><button class="underline">Reintentar avisos pendientes</button></form><ul>{data.notifications.map(n=><li class="my-3">{date(n.createdAt)} · {n.type==='sale_paid'?'Venta pagada':n.type==='privacy_request'?'Solicitud de privacidad':'Nueva solicitud de alianza'} · {n.deliveredAt?'Entregado al flujo':'Pendiente de entrega'} · {n.payload}</li>)}</ul></section>}
   </main>
 </Layout>

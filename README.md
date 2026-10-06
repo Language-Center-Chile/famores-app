@@ -88,3 +88,17 @@ cuando `FAMORES_DB_PATH` está configurado.
 Ver [configuración y límites](docs/coupons-and-partners.md). No hay cupones,
 usuarios, destinatarios ni porcentajes de comisión predeterminados. Requiere
 Node >=22.13.0. Esta rama no activa el módulo ni despliega infraestructura.
+
+### Compradores y privacidad
+
+Compra como invitado o con cuenta opcional (`/registrarse`, `/ingresar`, `/mi-cuenta`).
+Correo verificado, recuperación de contraseña, historial por ID de comprador,
+consentimiento separado para guardar datos de próximas compras, edición/retirada,
+exportación JSON propia y cierre de cuenta. `/privacidad` informa del tratamiento
+y recibe solicitudes de derechos. Estilos e iconos locales, sin CDN de scripts
+ni guardado automático de UTM o teléfono en sessionStorage.
+
+El registro permanece deshabilitado hasta completar la identificación/contacto
+del responsable, política de conservación y correo transaccional autenticado.
+El código no certifica cumplimiento legal: ver
+[pendientes de gobernanza y configuración](docs/privacy-and-customers.md).

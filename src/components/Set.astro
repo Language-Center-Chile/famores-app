@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 const setsPrincipales = [
     {
         id: "set-standard-pintado",
@@ -82,7 +83,7 @@ const mascotas = [
             Puedes comprar un set, varios sets, sólo mascotas o combinar productos. En el carrito eliges la cantidad de cada uno.
         </p>
         <a href="/comprar" class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-terapia-sageDark text-white font-semibold py-3 px-5">
-            Ver carrito completo <i class="fa-solid fa-cart-shopping text-xs"></i>
+            Ver carrito completo <Icon name="cart" />
         </a>
     </div>
 
@@ -101,7 +102,7 @@ const mascotas = [
                         {producto.nota && <p class="text-xs italic text-terapia-wood bg-terapia-woodLight/15 rounded-lg px-3 py-2">{producto.nota}</p>}
                     </div>
                     <a href={`/comprar?add=${producto.id}`} class="mt-auto inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-sage text-white font-semibold py-3 px-4 text-sm">
-                        Agregar al carrito <i class="fa-solid fa-cart-plus text-xs"></i>
+                        Agregar al carrito <Icon name="cart-plus" />
                     </a>
                 </div>
             </article>
@@ -124,7 +125,7 @@ const mascotas = [
                     <p class="text-xl font-bold text-terapia-sageDark mt-1 mb-2">{producto.precioTexto}</p>
                     <p class="text-sm text-gray-500">{producto.descripcion}</p>
                     <a href={`/comprar?add=${producto.id}`} class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-xl bg-terapia-woodLight/40 text-terapia-wood font-semibold py-2.5 px-4 text-sm">
-                        Comprar / agregar <i class="fa-solid fa-cart-plus text-xs"></i>
+                        Comprar / agregar <Icon name="cart-plus" />
                     </a>
                 </div>
             </article>

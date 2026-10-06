@@ -4,7 +4,7 @@ import { dirname, isAbsolute } from 'node:path';
 import crypto from 'node:crypto';
 import { calculateCartOrder, type CartSelection } from './cart';
 
-export type Account = { id: string; name: string; email: string; role: 'admin' | 'seller'; passwordHash: string };
+export type Account = { id: string; name: string; email: string; role: 'admin' | 'seller' | 'customer'; passwordHash: string };
 export type Coupon = { code: string; sellerId: string | null; kind: 'percent' | 'fixed'; value: number; expiresAt: number; maxUses: number; active: number };
 let currentDb: DatabaseSync | undefined;
 let currentPath = '';
@@ -25,7 +25,14 @@ export function db() {
     CREATE TABLE IF NOT EXISTS attempts(key TEXT PRIMARY KEY, count INTEGER NOT NULL, resetAt INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS applications(id TEXT PRIMARY KEY, createdAt INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', details TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY, type TEXT NOT NULL, createdAt INTEGER NOT NULL, payload TEXT NOT NULL, deliveredAt INTEGER);
+    CREATE TABLE IF NOT EXISTS privacyRequests(id TEXT PRIMARY KEY,createdAt INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',details TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS customers(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,name TEXT NOT NULL,passwordHash TEXT NOT NULL,verifiedAt INTEGER,createdAt INTEGER NOT NULL,profile TEXT NOT NULL DEFAULT '{}');
+    CREATE TABLE IF NOT EXISTS consents(id TEXT PRIMARY KEY,customerId TEXT NOT NULL,purpose TEXT NOT NULL,granted INTEGER NOT NULL,version TEXT NOT NULL,createdAt INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS emailTokens(tokenHash TEXT PRIMARY KEY,customerId TEXT NOT NULL,purpose TEXT NOT NULL,expiresAt INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS accountMail(id TEXT PRIMARY KEY,customerId TEXT NOT NULL,purpose TEXT NOT NULL,createdAt INTEGER NOT NULL,payload TEXT NOT NULL,deliveredAt INTEGER);
   `);
+  const columns = currentDb.prepare('PRAGMA table_info(orders)').all();
+  if (!columns.some(c=>c.name==='buyerId')) currentDb.exec('ALTER TABLE orders ADD COLUMN buyerId TEXT');
   return currentDb;
 }
 export function transaction<T>(fn: () => T): T {
@@ -42,6 +49,9 @@ export function accounts(): Account[] {
     ids.add(value.id); emails.add(value.email.toLowerCase());
   }
   return values;
+}
+export function loginAccounts(): Account[] {
+  return [...accounts(), ...db().prepare('SELECT id,name,email,passwordHash FROM customers WHERE verifiedAt IS NOT NULL').all().map(row=>({ id:String(row.id), name:String(row.name), email:String(row.email), passwordHash:String(row.passwordHash), role:'customer' as const }))];
 }
 export function normalizeCode(value: unknown) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{3,32}$/.test(value.trim())) throw new Error('Cupón no válido.');
@@ -80,10 +90,10 @@ export function quote(selection: CartSelection, code?: unknown) {
   const discount = Math.min(base.subtotal - 1, coupon.kind === 'percent' ? Math.floor(base.subtotal * coupon.value / 100) : coupon.value);
   return { ...base, discount, couponCode: normalized, sellerId: coupon.sellerId, total: base.total - discount };
 }
-export function reserveOrder(id: string, selection: CartSelection, code: unknown, details: unknown) {
+export function reserveOrder(id: string, selection: CartSelection, code: unknown, details: unknown, buyerId: string | null = null) {
   return transaction(() => {
     const calculated = quote(selection, code);
-    db().prepare('INSERT INTO orders(id,sellerId,couponCode,discount,total,createdAt,details) VALUES(?,?,?,?,?,?,?)').run(id,calculated.sellerId,calculated.couponCode,calculated.discount,calculated.total,Date.now(),JSON.stringify({ breakdown: calculated, customer: details }));
+    db().prepare('INSERT INTO orders(id,sellerId,couponCode,discount,total,createdAt,details,buyerId) VALUES(?,?,?,?,?,?,?,?)').run(id,calculated.sellerId,calculated.couponCode,calculated.discount,calculated.total,Date.now(),JSON.stringify({ breakdown: calculated, customer: details }),buyerId);
     return calculated;
   });
 }
@@ -103,6 +113,7 @@ export function confirmOrder(payment: { commerceOrder?: string; flowOrder?: numb
   });
 }
 export function dashboard(account: Account) {
+  if (account.role === 'customer') throw new Error('Usa tu panel de comprador.');
   const admin = account.role === 'admin';
   const orders = db().prepare(`SELECT id,sellerId,couponCode,discount,total,status,createdAt FROM orders ${admin ? '' : 'WHERE sellerId=?'} ORDER BY createdAt DESC LIMIT 500`).all(...(admin ? [] : [account.id]));
   const coupons = db().prepare(`SELECT c.*, (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=2) AS paidUses FROM coupons c ${admin ? '' : 'WHERE sellerId=?'} ORDER BY code`).all(...(admin ? [] : [account.id]));

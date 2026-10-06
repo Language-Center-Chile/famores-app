@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { promisify } from 'node:util';
-import { accounts, db, type Account } from './commerce';
+import { loginAccounts, db, type Account } from './commerce';
 const derive = promisify(crypto.scrypt);
 export const SESSION_COOKIE = 'famores_session';
 const digest = (token: string) => crypto.createHash('sha256').update(token).digest('hex');
@@ -9,7 +9,7 @@ export async function passwordHash(password: string, salt = crypto.randomBytes(1
   return `scrypt:${salt}:${key.toString('hex')}`;
 }
 export async function authenticate(email: string, password: string) {
-  const account = accounts().find(a => a.email.toLowerCase() === email.trim().toLowerCase());
+  const account = loginAccounts().find(a => a.email.toLowerCase() === email.trim().toLowerCase());
   const stored = account?.passwordHash || `scrypt:${'0'.repeat(32)}:${'0'.repeat(128)}`;
   const [,salt,expected] = stored.split(':');
   const key = await derive(password, salt, 64) as Buffer;
@@ -24,7 +24,7 @@ export function createSession(account: Account) {
 export function sessionAccount(token?: string) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   const session = db().prepare('SELECT accountId,credentialHash FROM sessions WHERE tokenHash=? AND expiresAt>?').get(digest(token),Date.now()) as any;
-  return session ? accounts().find(a => a.id === session.accountId && digest(a.passwordHash) === session.credentialHash) || null : null;
+  return session ? loginAccounts().find(a => a.id === session.accountId && digest(a.passwordHash) === session.credentialHash) || null : null;
 }
 export function deleteSession(token?: string) { if (token) db().prepare('DELETE FROM sessions WHERE tokenHash=?').run(digest(token)); }
 export function sameOrigin(request: Request) {
