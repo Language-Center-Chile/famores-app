@@ -123,9 +123,15 @@ const products = [
           <input id="customer-email" type="email" inputmode="email" class="w-full min-h-[44px] text-base rounded-xl border border-stone-200 px-3 py-2" autocomplete="email" />
         </div>
 
+        <div class="border-t border-stone-200 mt-5 pt-5">
+          <label for="coupon-code" class="block font-semibold mb-2">¿Tienes un código de descuento?</label>
+          <div class="flex gap-2"><input id="coupon-code" maxlength="32" autocomplete="off" class="min-w-0 flex-1 border rounded-xl p-3" placeholder="Código de descuento" /><button id="apply-coupon" type="button" class="border rounded-xl p-3">Aplicar</button><button id="remove-coupon" type="button" class="underline">Quitar</button></div>
+          <p id="coupon-status" role="status" aria-live="polite" class="text-sm mt-2"></p>
+        </div>
         <div class="border-t border-stone-200 mt-5 pt-5 space-y-2 text-sm">
           <div class="flex justify-between gap-3"><span>Entrega</span><strong id="delivery-summary" class="text-right">Retiro en local</strong></div>
           <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Descuento</span><strong id="discount">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Caja</span><strong id="box">$0</strong></div>
           <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total a pagar ahora</span><strong id="total">$0</strong></div>
@@ -164,6 +170,11 @@ const products = [
     const deliverySummaryEl = document.getElementById("delivery-summary");
     const errorEl = document.getElementById("cart-error");
     const payButton = document.getElementById("pay-button");
+    let couponCode = "";
+    const couponStatus = document.getElementById("coupon-status");
+    document.getElementById("apply-coupon").addEventListener("click", () => { couponCode = document.getElementById("coupon-code").value.trim().toUpperCase(); refreshQuote(); });
+    document.getElementById("remove-coupon").addEventListener("click", () => { couponCode = ""; document.getElementById("coupon-code").value = ""; refreshQuote(); });
+    document.getElementById("coupon-code").addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); document.getElementById("apply-coupon").click(); } });
     let lastQuote = null;
     let quoteTimer = null;
     let quoteRequestId = 0;
@@ -250,6 +261,8 @@ const products = [
       updateAllCardStates();
       updateDeliveryFields();
       lastQuote = null;
+      couponStatus.textContent = "";
+      document.getElementById("discount").textContent = "$0";
       showError("");
       if (!items.length) {
         renderLines([]);
@@ -267,11 +280,13 @@ const products = [
         return;
       }
       try {
-        const response = await fetch("/api/cart/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items, courier, region, commune }) });
+        const response = await fetch("/api/cart/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items, courier, region, commune, couponCode }) });
         const data = await response.json();
         if (requestId !== quoteRequestId) return;
         if (!response.ok) throw new Error(data.error || "No fue posible calcular el pedido.");
         lastQuote = data;
+        document.getElementById("discount").textContent = data.discount ? `−${money(data.discount)}` : "$0";
+        couponStatus.textContent = data.couponCode ? `Código ${data.couponCode} aplicado. Ahorras ${money(data.discount)} en productos.` : "";
         renderLines(data.items);
         document.getElementById("subtotal").textContent = money(data.subtotal);
         document.getElementById("shipping").textContent = data.shippingPending ? "Por cotizar" : money(data.shippingPrice);
@@ -279,8 +294,10 @@ const products = [
         document.getElementById("total").textContent = money(data.total);
         payButton.disabled = false;
       } catch (error) {
+        if (requestId !== quoteRequestId) return;
+        document.getElementById("total").textContent = "Por calcular";
         showError(error instanceof Error ? error.message : "No fue posible calcular el pedido.");
-        payButton.disabled = false;
+        payButton.disabled = true;
       }
     }
 
@@ -347,7 +364,7 @@ const products = [
         const response = await fetch("/api/flow/create-cart-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, deliveryAddress, branchName }),
+          body: JSON.stringify({ items, courier, region, commune, country, city, name, lastName, customerId, email, phone, deliveryAddress, branchName, couponCode }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No fue posible crear el pago.");

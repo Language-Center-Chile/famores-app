@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { commerceEnabled, dashboard, accounts } from '../lib/commerce';
+import { sessionAccount, SESSION_COOKIE, privateHeaders } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+const account = commerceEnabled() ? sessionAccount(Astro.cookies.get(SESSION_COOKIE)?.value) : null;
+if (!account) return Astro.redirect('/ingresar',303);
+const data = dashboard(account);
+const money = (value: unknown) => '$'+Number(value||0).toLocaleString('es-CL');
+const date = (value: unknown) => new Date(Number(value)).toLocaleDateString('es-CL',{timeZone:'America/Santiago'});
+const statuses: Record<number,string> = {1:'Pendiente',2:'Pagado',3:'Rechazado',4:'Anulado'};
+const admin = account.role === 'admin';
+const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
+---
+<Layout title="Panel privado | Famores">
+  <main class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex flex-wrap justify-between gap-4"><a href="/">← Famores</a><form method="post" action="/api/account/logout"><button class="underline">Cerrar sesión</button></form></div>
+    <h1 class="text-3xl font-bold my-6">Hola, {account.name}</h1>
+    <p>{admin ? 'Ventas, cupones y solicitudes de alianzas.' : 'Tus cupones y ventas asociadas. Los totales incluyen solo pagos confirmados.'}</p>
+    <div class="grid sm:grid-cols-3 gap-4 my-6">
+      <div class="bg-white rounded-xl border p-5"><p>Ventas pagadas</p><strong class="text-2xl">{data.totals?.paidOrders}</strong></div>
+      <div class="bg-white rounded-xl border p-5"><p>Total cobrado (incluye despacho y caja)</p><strong class="text-2xl">{money(data.totals?.paidTotal)}</strong></div>
+      <div class="bg-white rounded-xl border p-5"><p>Descuentos otorgados</p><strong class="text-2xl">{money(data.totals?.discounts)}</strong></div>
+    </div>
+    {Astro.url.searchParams.has('ok') && <p role="status">Cupón guardado.</p>}
+    {admin && <section class="bg-white border rounded-xl p-5 my-6"><h2 class="text-xl font-bold">Crear cupón</h2><p class="text-sm my-3">Se aplica a los productos. El despacho y la caja se cobran completos. Cada código conserva sus condiciones; para cambiarlas crea uno nuevo.</p>
+      <form method="post" action="/api/account/coupons" class="grid sm:grid-cols-2 gap-3">
+        <label>Código<input name="code" required pattern="[A-Za-z0-9_-]{3,32}" maxlength="32" class="block w-full border rounded p-2" /></label>
+        <label>Asignado a<select name="sellerId" class="block w-full border rounded p-2"><option value="">Campaña general</option>{sellers.map(s=><option value={s.id}>{s.name}</option>)}</select></label>
+        <label>Tipo<select name="kind" class="block w-full border rounded p-2"><option value="percent">Porcentaje</option><option value="fixed">Monto en CLP</option></select></label>
+        <label>Valor<input name="value" type="number" min="1" step="1" required class="block w-full border rounded p-2" /></label>
+        <label>Último día de vigencia (Chile)<input name="expiry" type="date" required class="block w-full border rounded p-2" /></label>
+        <label>Máximo de usos<input name="maxUses" type="number" min="1" step="1" required class="block w-full border rounded p-2" /></label>
+        <button class="bg-terapia-sage text-white rounded-xl p-3">Crear cupón</button>
+      </form></section>}
+    <h2 class="text-xl font-bold my-4">Cupones</h2>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr><th>Código</th><th>Descuento</th><th>Vence</th><th>Ventas / límite</th><th>Estado</th></tr></thead><tbody>{data.coupons.map(c=><tr><td class="p-3">{c.code}</td><td>{c.kind==='percent' ? `${c.value}%` : money(c.value)}</td><td>{date(c.expiresAt)}</td><td>{c.paidUses} / {c.maxUses}</td><td>{c.active && Number(c.expiresAt)>Date.now() ? 'Activo':'Inactivo'}{admin && Boolean(c.active) && <form method="post" action="/api/account/coupons"><input type="hidden" name="action" value="disable"/><input type="hidden" name="code" value={String(c.code)}/><button class="underline">Desactivar</button></form>}</td></tr>)}</tbody></table></div>
+    {!data.coupons.length && <p class="my-4">Aún no hay cupones asignados.</p>}
+    <h2 class="text-xl font-bold my-4">Pedidos</h2>
+    <p class="text-sm mb-3">Últimos 500 pedidos. Los pedidos pendientes reservan un uso de su cupón hasta que Flow confirme su resultado.</p>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr><th>Pedido</th><th>Fecha</th><th>Cupón</th><th>Descuento</th><th>Total</th><th>Estado</th></tr></thead><tbody>{data.orders.map(o=><tr><td class="p-3">{o.id}</td><td>{date(o.createdAt)}</td><td>{o.couponCode || '—'}</td><td>{money(o.discount)}</td><td>{money(o.total)}</td><td>{statuses[Number(o.status)]}{admin && Number(o.status)!==2 && <form method="post" action="/api/account/reconcile"><input type="hidden" name="orderId" value={String(o.id)}/><button class="underline">Verificar en Flow</button></form>}</td></tr>)}</tbody></table></div>
+    {!data.orders.length && <p class="my-4">Todavía no hay pedidos registrados.</p>}
+    {admin && <section class="my-8"><h2 class="text-xl font-bold">Solicitudes de alianzas</h2><p class="text-sm my-3">Las solicitudes no crean cuentas automáticamente. Revisa y acuerda las condiciones antes de habilitar al vendedor.</p>{data.applications.map(a=>{ const d=JSON.parse(String(a.details)); return <article class="bg-white border rounded-xl p-4 my-3"><h3 class="font-bold">{d.name} · {d.business}</h3><p>{d.city} · {d.mode} · {date(a.createdAt)}</p><p>{d.email} · {d.phone}</p><p>{d.social}</p><p>{d.quantity}</p></article>; })}{!data.applications.length && <p>Aún no hay solicitudes.</p>}</section>}
+    {admin && <section class="my-8"><h2 class="text-xl font-bold">Notificaciones</h2><p class="text-sm my-3">Los avisos quedan registrados aquí. La entrega por correo requiere conectar el flujo de notificaciones.</p><form method="post" action="/api/account/notifications"><button class="underline">Reintentar avisos pendientes</button></form><ul>{data.notifications.map(n=><li class="my-3">{date(n.createdAt)} · {n.type==='sale_paid'?'Venta pagada':'Nueva solicitud de alianza'} · {n.deliveredAt?'Entregado al flujo':'Pendiente de entrega'} · {n.payload}</li>)}</ul></section>}
+  </main>
+</Layout>

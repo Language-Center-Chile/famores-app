@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { commerceEnabled } from '../lib/commerce';
+Astro.response.headers.set('Cache-Control','no-store');
+---
+<Layout title="Revende Famores">
+  <main class="max-w-2xl mx-auto px-6 py-12">
+    <a href="/">← Volver a Famores</a>
+    <h1 class="text-3xl font-bold my-6">Crezcamos juntos</h1>
+    <p>¿Tienes una tienda, un espacio terapéutico o una comunidad? Cuéntanos cómo te gustaría ofrecer Famores.</p>
+    <p class="my-4">Puedes postular para compra mayorista, consignación o venta por comisión. Revisaremos tu solicitud y acordaremos contigo las condiciones antes de activar una alianza.</p>
+    {Astro.url.searchParams.has('ok') ? <p class="my-6 rounded-xl bg-terapia-bg p-6" role="status">Recibimos tu solicitud. Famores se pondrá en contacto contigo para conversar sobre la alianza.</p> : !commerceEnabled() ? <p class="my-6">Próximamente podrás postular desde aquí. Por ahora, contáctanos mediante el botón de WhatsApp.</p> : <form method="post" action="/api/partners/apply" class="grid gap-3 my-6">
+      <label for="name">Nombre *</label><input id="name" name="name" required maxlength="160" autocomplete="name" class="border rounded-xl p-3" />
+      <label for="email">Correo *</label><input id="email" name="email" type="email" required maxlength="160" autocomplete="email" class="border rounded-xl p-3" />
+      <label for="phone">WhatsApp / teléfono *</label><input id="phone" name="phone" type="tel" required maxlength="60" autocomplete="tel" class="border rounded-xl p-3" />
+      <label for="city">Ciudad y país *</label><input id="city" name="city" required maxlength="160" class="border rounded-xl p-3" />
+      <label for="business">Nombre de tu negocio o actividad</label><input id="business" name="business" maxlength="200" class="border rounded-xl p-3" />
+      <label for="social">Sitio web o redes sociales</label><input id="social" name="social" maxlength="300" class="border rounded-xl p-3" />
+      <label for="mode">Modalidad de interés *</label><select id="mode" name="mode" required class="border rounded-xl p-3"><option value="">Selecciona una modalidad</option><option value="mayorista">Compra mayorista</option><option value="consignacion">Consignación</option><option value="comision">Venta por comisión</option></select>
+      <label for="quantity">Cantidad estimada o propuesta</label><textarea id="quantity" name="quantity" maxlength="300" class="border rounded-xl p-3"></textarea>
+      <div hidden aria-hidden="true"><label for="website">Deja este campo vacío</label><input id="website" name="website" tabindex="-1" autocomplete="off" /></div>
+      <label><input name="consent" type="checkbox" value="yes" required /> Autorizo a Famores a guardar estos datos para evaluar mi solicitud y contactarme sobre esta alianza.</label>
+      <button class="rounded-xl bg-terapia-sage text-white p-3 font-bold">Enviar solicitud</button>
+    </form>}
+    <a href="/ingresar" class="underline">Ya tengo acceso de vendedor</a>
+  </main>
+</Layout>
