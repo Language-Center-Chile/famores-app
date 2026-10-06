@@ -103,3 +103,11 @@ visibles; métricas de pagos calculadas sobre todo el historial. La base puede c
 política de retención, exportaciones y borrado de solicitudes aún no están incluidos.
 El esquema inicial se crea al abrir DB; cambios futuros necesitan migraciones.
 No hay integración automática a Sheets/orquestador ni liquidación de comisiones.
+
+## Verificación
+
+`npm run test`, `npm run typecheck`, `npm run build` y
+`node scripts/smoke-commerce.mjs`. El smoke crea cuentas/cupones ficticios en una
+base temporal, prueba login, CSRF, consentimiento, cálculo y aislamiento por
+vendedor, y elimina la base al terminar. No llama a pagos ni envía mensajes.
+El pipeline de CI ejecuta el smoke después del build.
