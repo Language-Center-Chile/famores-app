@@ -12,7 +12,9 @@
     "start": "node ./dist/server/entry.mjs",
     "astro": "astro",
     "typecheck": "astro check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:commerce-config": "node scripts/check-commerce-config.mjs",
+    "test:commerce-config": "vitest run scripts/check-commerce-config.test.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.6",

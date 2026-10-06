@@ -28,6 +28,29 @@ Con las variables vacías el checkout habitual sigue funcionando, sin cupones;
 el acceso/formulario muestra disponibilidad próxima. No hay cambio automático
 al hosting, DNS, credenciales o permisos existentes.
 
+### Comprobar la configuración antes de activar
+
+Ejecutar `npm run check:commerce-config` dentro del entorno del servidor, con sus
+variables ya cargadas. Para un archivo privado local puede usarse
+`node --env-file=/ruta/privada/famores.env scripts/check-commerce-config.mjs`.
+No compartir ese archivo ni pegar sus secretos en Git o en informes.
+
+El chequeo imprime únicamente nombres de variables y ajustes faltantes; no
+imprime valores, abre SQLite, envía correos ni llama a Flow. Sale con código 1
+si faltan requisitos de la ampliación completa (cupones, administración,
+compradores y avisos externos), o 0 cuando el formato es válido. Las
+notificaciones externas son opcionales para el módulo base; aquí se requieren
+porque el objetivo de activación incluye avisos de venta y postulaciones.
+
+Comprueba Node, origen público HTTPS, ruta absoluta fuera de `public`, cuentas
+únicas con al menos un administrador, credenciales presentes, endpoint de Flow,
+datos de privacidad, workflows y formato de la clave de cifrado. Un resultado
+correcto no verifica credenciales, identidad legal ni cumplimiento, ni demuestra
+persistencia, permisos, entrega de correo o recepción de notificaciones.
+Completar después el ensayo Flow Sandbox, reinicio del contenedor, restauración
+de respaldo y comprobación de correos. Las cinco pruebas del verificador se
+ejecutan mediante `npm run test:commerce-config` y están incluidas en CI.
+
 ## Acceso y privacidad
 
 Compradores: compra como invitado o con cuenta opcional y correo verificado. Vendedores: cuentas aprobadas provisionadas por
