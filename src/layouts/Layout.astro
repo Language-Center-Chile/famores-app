@@ -1,5 +1,6 @@
 ---
 import BotonSoporte from '../components/BotonSoporte.astro';
+import '../styles/site.css';
 import Footer from '../components/Footer.astro';
 
 interface Props {
@@ -17,31 +18,13 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 <html lang="es">
 	<head>
 		<meta charset="UTF-8" />
+		<meta name="referrer" content="same-origin" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/png" href="/images/brand/logo-famores.png" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonicalUrl} />
-
-		<script is:inline>
-			(function captureUtm() {
-				const params = new URLSearchParams(window.location.search);
-				if (!params.has("utm_source")) return;
-				const utm = {
-					utm_source: params.get("utm_source") || "",
-					utm_medium: params.get("utm_medium") || "",
-					utm_campaign: params.get("utm_campaign") || "",
-					utm_content: params.get("utm_content") || "",
-					utm_term: params.get("utm_term") || "",
-				};
-				try {
-					sessionStorage.setItem("famores_utm", JSON.stringify(utm));
-				} catch (error) {
-					console.warn("No se pudo guardar la atribución UTM:", error);
-				}
-			})();
-		</script>
 
 		<meta property="og:title" content="Famores - Herramientas Sistémicas" />
 		<meta property="og:description" content={description} />
@@ -56,36 +39,7 @@ const ogImageUrl = new URL("/images/content/promo-set-standard.jpg", siteBase);
 		<meta name="twitter:image" content={ogImageUrl} />
 		<meta name="twitter:image:alt" content="Set de figuras terapéuticas sistémicas Famores" />
 
-		<script is:inline src="https://cdn.tailwindcss.com"></script>
-		<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-		/>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<script is:inline>
-			tailwind.config = {
-				theme: {
-					extend: {
-						fontFamily: { sans: ['Inter', 'sans-serif'] },
-						colors: {
-							terapia: {
-								bg: '#FDFBF7',
-								wood: '#8B5A2B',
-								woodLight: '#D2B48C',
-								sage: '#8FAC9A',
-								sageDark: '#5E7A68',
-								text: '#4A4A4A'
-							}
-						}
-					}
-				}
-			}
-		</script>
+
 	</head>
 	<body class="min-h-screen py-10 px-4 sm:px-6 lg:px-8">
 		<a class="skip-link" href="#contenido-principal">Saltar al contenido principal</a>

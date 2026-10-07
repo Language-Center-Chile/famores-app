@@ -31,7 +31,7 @@ export function normalizeCartItems(items: CartItemInput[]) {
   for (const raw of items) {
     const product = String(raw?.product || "").trim() as CartProductName;
     const quantity = Number(raw?.quantity);
-    if (!(product in CART_PRODUCTS)) throw new Error("Producto no válido.");
+    if (!Object.hasOwn(CART_PRODUCTS, product)) throw new Error("Producto no válido.");
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_PRODUCT) {
       throw new Error(`Cantidad no válida para ${product}.`);
     }

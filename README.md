@@ -70,3 +70,35 @@ El código actual representa el MVP Transaccional (Fase 1). La arquitectura ha s
 - No hay panel administrativo para visualizar pedidos.
 - No hay capa de analítica/eventos de funnel (`view_product`, `add_to_cart`, `begin_checkout`, `purchase`, `whatsapp_click`) ni atribución UTM verificada. Esa integración debe validarse primero contra Google Apps Script y abordarse en un cambio separado.
 - No hay linter configurado (sí hay `npm run typecheck` y `npm run test`, agregados en esta auditoría).
+
+## Cupones y panel de vendedores (propuesta de implementación)
+
+El checkout vigente está en `/comprar` y usa `/api/cart/quote` y
+`/api/flow/create-cart-payment`. Las notas anteriores sobre checkout-v2 y Sheets
+son históricas; el callback vigente se integra con un registro SQLite propio
+cuando `FAMORES_DB_PATH` está configurado.
+
+- `/alianzas`: solicitud de reventa, sin crear automáticamente cuentas.
+- `/ingresar`: acceso de administración o vendedor aprobado.
+- `/panel`: cupones, pedidos y ventas confirmadas, filtrados por vendedor.
+- Cupones de monto fijo o porcentaje, vencimiento y cupo; descuento solo en productos.
+- Reserva transaccional de usos y confirmaciones idempotentes verificadas en Flow.
+- Avisos durables en el panel y salida opcional a un webhook n8n autenticado.
+
+Ver [configuración y límites](docs/coupons-and-partners.md). No hay cupones,
+usuarios, destinatarios ni porcentajes de comisión predeterminados. Requiere
+Node >=22.13.0. Esta rama no activa el módulo ni despliega infraestructura.
+
+### Compradores y privacidad
+
+Compra como invitado o con cuenta opcional (`/registrarse`, `/ingresar`, `/mi-cuenta`).
+Correo verificado, recuperación de contraseña, historial por ID de comprador,
+consentimiento separado para guardar datos de próximas compras, edición/retirada,
+exportación JSON propia y cierre de cuenta. `/privacidad` informa del tratamiento
+y recibe solicitudes de derechos. Estilos e iconos locales, sin CDN de scripts
+ni guardado automático de UTM o teléfono en sessionStorage.
+
+El registro permanece deshabilitado hasta completar la identificación/contacto
+del responsable, política de conservación y correo transaccional autenticado.
+El código no certifica cumplimiento legal: ver
+[pendientes de gobernanza y configuración](docs/privacy-and-customers.md).

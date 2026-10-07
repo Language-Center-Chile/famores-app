@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { commerceEnabled } from '../lib/commerce';
+import { customerRegistrationEnabled } from '../lib/customer';
+import { privateHeaders } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+---
+<Layout title="Crea tu cuenta | Famores"><main id="contenido-principal" class="max-w-lg mx-auto px-6 py-12">
+  <a href="/comprar">← Continuar comprando como invitado</a><h1 class="text-3xl font-bold my-6">Tu próxima compra, más fácil</h1>
+  <p>La cuenta es opcional: consulta tus pedidos y elige qué datos guardar para próximas compras. No te suscribe a publicidad.</p>
+  {Astro.url.searchParams.has('sent') ? <p role="status" class="my-6">Si el correo permite registrar o completar una cuenta, se ha registrado la solicitud de verificación. Revisa tu correo; la entrega puede tardar. Si ya tienes cuenta, ingresa o recupera tu contraseña.</p> : commerceEnabled() && customerRegistrationEnabled() ? <form method="post" action="/api/account/register" class="grid gap-3 my-6">
+    <label for="name">Nombre</label><input id="name" name="name" required maxlength="120" autocomplete="given-name" class="border rounded-xl p-3"/>
+    <label for="email">Correo</label><input id="email" name="email" type="email" required maxlength="160" autocomplete="email" class="border rounded-xl p-3"/>
+    <p class="text-sm">Elegirás tu contraseña al verificar el correo.</p>
+    <label><input type="checkbox" name="consent" value="yes" required/> Quiero crear una cuenta y autorizo el tratamiento de los datos necesarios para gestionarla, según la <a class="underline" href="/privacidad" target="_blank" rel="noopener">política de privacidad</a>. Podré cerrar mi cuenta.</label>
+    <button class="rounded-xl bg-terapia-sage text-white p-3 font-bold">Crear cuenta y verificar correo</button>
+  </form> : <p class="my-6">El registro estará disponible cuando se habilite. Puedes comprar como invitado.</p>}
+  <a href="/ingresar" class="underline">Ya tengo cuenta</a>
+</main></Layout>

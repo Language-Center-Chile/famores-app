@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { commerceEnabled } from '../lib/commerce';
+import { customerData } from '../lib/customer';
+import { privateHeaders, sessionAccount, SESSION_COOKIE } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+const account=commerceEnabled()?sessionAccount(Astro.cookies.get(SESSION_COOKIE)?.value):null;
+if(!account)return Astro.redirect('/ingresar',303);
+if(account.role!=='customer')return Astro.redirect('/panel',303);
+const data=customerData(account);const profile=data.account.profile;
+const fields=[['name','Nombre'],['lastName','Apellido'],['phone','Teléfono'],['region','Región'],['commune','Comuna'],['country','País'],['city','Ciudad'],['deliveryAddress','Dirección de entrega'],['branchName','Sucursal de retiro']];
+const statuses:Record<number,string>={1:'Pendiente',2:'Pagado',3:'Rechazado',4:'Anulado'};
+---
+<Layout title="Mi cuenta | Famores"><main id="contenido-principal" class="max-w-4xl mx-auto px-6 py-10">
+  <div class="flex justify-between gap-4"><a href="/comprar">Seguir comprando</a><form method="post" action="/api/account/logout"><button class="underline">Cerrar sesión</button></form></div>
+  <h1 class="text-3xl font-bold my-6">Hola, {account.name}</h1><p>{account.email}</p>
+  <h2 class="text-xl font-bold my-5">Datos para próximas compras</h2><p class="text-sm">Guardar estos datos es opcional. No guardamos tu RUT/DNI ni datos de tarjeta en este perfil. Al desmarcar la casilla y guardar, retiramos tus datos de autocompletado; los pedidos conservan los datos necesarios para su gestión.</p>
+  {Astro.url.searchParams.has('ok')&&<p role="status">Preferencias actualizadas.</p>}
+  <form method="post" action="/api/account/profile" class="grid sm:grid-cols-2 gap-3 my-5">
+    {fields.map(([key,label])=><label>{label}<input name={key} value={profile[key]||''} maxlength="220" class="block w-full border rounded-xl p-3"/></label>)}
+    <label class="sm:col-span-2"><input name="saveDetails" type="checkbox" value="yes" checked={Object.keys(profile).length>0}/> Quiero guardar estos datos para próximas compras. Puedo retirar esta autorización aquí.</label><button class="rounded-xl bg-terapia-sage text-white p-3">Guardar preferencias</button>
+  </form>
+  <h2 class="text-xl font-bold my-5">Mis pedidos</h2><p class="text-sm">Pedidos realizados mientras estabas conectado con esta cuenta. No asociamos compras anteriores automáticamente por coincidencia de correo.</p>
+  <div class="overflow-x-auto"><table class="w-full text-left my-4"><thead><tr><th>Pedido</th><th>Fecha</th><th>Cupón</th><th>Total</th><th>Estado</th></tr></thead><tbody>{data.orders.map(o=><tr><td class="p-3">{o.id}</td><td>{new Date(Number(o.createdAt)).toLocaleDateString('es-CL',{timeZone:'America/Santiago'})}</td><td>{o.couponCode||'—'}</td><td>${Number(o.total).toLocaleString('es-CL')}</td><td>{statuses[Number(o.status)]}</td></tr>)}</tbody></table></div>
+  {!data.orders.length&&<p>Aún no hay pedidos asociados.</p>}
+  <h2 class="text-xl font-bold my-5">Tus datos y privacidad</h2><p><a href="/api/account/export" class="underline">Descargar mis datos en JSON</a> · <a href="/privacidad" class="underline">Política y solicitudes de derechos</a></p>
+  <details class="border rounded-xl p-5 my-6"><summary>Cerrar mi cuenta</summary><p class="my-4">Se borrarán tu cuenta y los datos guardados para próximas compras, y se cerrarán tus sesiones. Algunos registros de pedidos y autorizaciones podrán conservarse por obligaciones legales o para acreditar su gestión, según la política de privacidad.</p><form method="post" action="/api/account/close" class="grid gap-3"><label>Confirma tu contraseña<input type="password" name="password" required maxlength="256" autocomplete="current-password" class="block w-full border rounded p-3"/></label><label><input type="checkbox" name="confirm" value="yes" required/> Entiendo el efecto y quiero cerrar mi cuenta.</label><button class="border rounded-xl p-3">Cerrar y eliminar mi cuenta de comprador</button></form></details>
+</main></Layout>
