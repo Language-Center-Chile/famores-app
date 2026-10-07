@@ -11,6 +11,11 @@ const money = (value: unknown) => '$'+Number(value||0).toLocaleString('es-CL');
 const date = (value: unknown) => new Date(Number(value)).toLocaleDateString('es-CL',{timeZone:'America/Santiago'});
 const statuses: Record<number,string> = {1:'Pendiente',2:'Pagado',3:'Rechazado',4:'Anulado'};
 const admin = account.role === 'admin';
+const couponStatus = (coupon: Record<string, unknown>) => {
+  if (!coupon.active) return 'Inactivo';
+  if (Number(coupon.expiresAt) <= Date.now()) return 'Vencido';
+  return Number(coupon.remainingUses) === 0 ? 'Agotado' : 'Activo';
+};
 const privacyRequests=admin?db().prepare('SELECT * FROM privacyRequests ORDER BY createdAt DESC LIMIT 100').all():[];
 const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
 ---
@@ -36,7 +41,8 @@ const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
         <button class="bg-terapia-sage text-white rounded-xl p-3">Crear cupón</button>
       </form></section>}
     <h2 class="text-xl font-bold my-4">Cupones</h2>
-    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr><th>Código</th><th>Descuento</th><th>Vence</th><th>Ventas / límite</th><th>Estado</th></tr></thead><tbody>{data.coupons.map(c=><tr><td class="p-3">{c.code}</td><td>{c.kind==='percent' ? `${c.value}%` : money(c.value)}</td><td>{date(c.expiresAt)}</td><td>{c.paidUses} / {c.maxUses}</td><td>{c.active && Number(c.expiresAt)>Date.now() ? 'Activo':'Inactivo'}{admin && Boolean(c.active) && <form method="post" action="/api/account/coupons"><input type="hidden" name="action" value="disable"/><input type="hidden" name="code" value={String(c.code)}/><button class="underline">Desactivar</button></form>}</td></tr>)}</tbody></table></div>
+    <p class="text-sm mb-3">Cada pago pendiente reserva un uso. Los usos disponibles descuentan tanto las ventas pagadas como las reservas pendientes.</p>
+    <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr><th>Código</th><th>Descuento</th><th>Vence</th><th>Ventas / límite</th><th>Reservados</th><th>Disponibles</th><th>Estado</th></tr></thead><tbody>{data.coupons.map(c=><tr><td class="p-3">{c.code}</td><td>{c.kind==='percent' ? `${c.value}%` : money(c.value)}</td><td>{date(c.expiresAt)}</td><td>{c.paidUses} / {c.maxUses}</td><td>{c.pendingUses}</td><td>{c.remainingUses}</td><td>{couponStatus(c)}{admin && Boolean(c.active) && <form method="post" action="/api/account/coupons"><input type="hidden" name="action" value="disable"/><input type="hidden" name="code" value={String(c.code)}/><button class="underline">Desactivar</button></form>}</td></tr>)}</tbody></table></div>
     {!data.coupons.length && <p class="my-4">Aún no hay cupones asignados.</p>}
     <h2 class="text-xl font-bold my-4">Pedidos</h2>
     <p class="text-sm mb-3">Últimos 500 pedidos. Los pedidos pendientes reservan un uso de su cupón hasta que Flow confirme su resultado.</p>

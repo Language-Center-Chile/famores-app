@@ -116,7 +116,11 @@ export function dashboard(account: Account) {
   if (account.role === 'customer') throw new Error('Usa tu panel de comprador.');
   const admin = account.role === 'admin';
   const orders = db().prepare(`SELECT id,sellerId,couponCode,discount,total,status,createdAt FROM orders ${admin ? '' : 'WHERE sellerId=?'} ORDER BY createdAt DESC LIMIT 500`).all(...(admin ? [] : [account.id]));
-  const coupons = db().prepare(`SELECT c.*, (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=2) AS paidUses FROM coupons c ${admin ? '' : 'WHERE sellerId=?'} ORDER BY code`).all(...(admin ? [] : [account.id]));
+  const coupons = db().prepare(`SELECT c.*,
+    (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=2) AS paidUses,
+    (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=1) AS pendingUses,
+    MAX(0, c.maxUses - (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status IN (1,2))) AS remainingUses
+    FROM coupons c ${admin ? '' : 'WHERE sellerId=?'} ORDER BY code`).all(...(admin ? [] : [account.id]));
   const totals = db().prepare(`SELECT COUNT(*) AS paidOrders, COALESCE(SUM(total),0) AS paidTotal, COALESCE(SUM(discount),0) AS discounts FROM orders WHERE status=2 ${admin ? '' : 'AND sellerId=?'}`).get(...(admin ? [] : [account.id]));
   return { orders, coupons, totals, applications: admin ? db().prepare('SELECT * FROM applications ORDER BY createdAt DESC LIMIT 100').all() : [], notifications: admin ? db().prepare('SELECT * FROM notifications ORDER BY createdAt DESC LIMIT 100').all() : [] };
 }

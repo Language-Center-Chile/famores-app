@@ -81,7 +81,9 @@ Los códigos emitidos son inmutables; pueden desactivarse y reemplazarse.
 
 Antes de solicitar el pago se guarda el pedido y se reserva un uso en una
 transacción SQLite. Pedidos pendientes y pagados consumen capacidad. Rechazados
-y anulados la liberan. Los cambios del carrito vuelven a validar las condiciones.
+y anulados la liberan. El panel muestra ventas pagadas, usos reservados y usos
+disponibles por separado; un código vigente sin capacidad aparece como agotado.
+Los cambios del carrito vuelven a validar las condiciones.
 Flow se consulta con credenciales de servidor antes de confirmar; monto, moneda,
 orden y referencia se comparan contra el pedido guardado. Los callbacks duplicados
 no duplican ventas ni eventos, y uno pendiente tardío no rebaja un estado final.
@@ -130,6 +132,28 @@ No hay integración automática a Sheets/orquestador ni liquidación de comision
 La ampliación de compradores y la preparación de privacidad se detallan en [privacidad y cuentas](privacy-and-customers.md).
 
 ## Verificación
+
+### Secuencia para aprobar la activación
+
+Registrar el commit probado y el resultado de cada paso en el entorno de ensayo.
+Las pruebas de CI no sustituyen estas verificaciones del alojamiento real.
+
+| Paso | Evidencia necesaria antes de activar |
+|---|---|
+| Configuración | `check:commerce-config` termina con código 0 en el servidor; no copiar secretos al informe |
+| Compra | Invitado y comprador con cuenta pueden completar un pedido en Flow Sandbox; el callback coincide en monto y orden |
+| Cupón | Un pago pendiente reserva capacidad, uno pagado se cuenta una sola vez y uno rechazado libera su uso; el panel refleja los tres casos |
+| Aislamiento | Cada vendedor ve solo sus ventas; cada comprador ve solo su historial y exportación |
+| Correo | Verificación y recuperación llegan al buzón de prueba; enlaces vencidos o reutilizados se rechazan |
+| Avisos | El receptor deduplica `eventId`; un fallo mantiene el evento pendiente y el reintento lo entrega |
+| Datos | Reiniciar/recrear el contenedor conserva pedidos y cuentas; restaurar un backup consistente en una base separada |
+| Privacidad | Responsable, contacto, conservación y texto final validados; atención de solicitudes y proveedores definidos |
+
+Antes del despliegue, conservar la versión anterior y un backup consistente con
+su procedimiento de restauración. Ante un fallo, detener la ampliación y volver
+a la versión anterior conservando el volumen y los pedidos; no eliminar la base
+ni liberar reservas ambiguas para recuperar disponibilidad. Conciliar en Flow
+los pagos recibidos durante el cambio antes de reabrir la ampliación.
 
 `npm run test`, `npm run typecheck`, `npm run build` y
 `node scripts/smoke-commerce.mjs`. El smoke crea cuentas/cupones ficticios en una

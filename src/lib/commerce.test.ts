@@ -55,6 +55,21 @@ describe('server coupons and payment persistence',()=>{
     expect(JSON.stringify(mine)).not.toContain('private'); expect(mine.applications).toEqual([]); expect(mine.notifications).toEqual([]);
     expect(dashboard(accounts()[2]).orders).toHaveLength(0); expect(dashboard(accounts()[2]).coupons).toHaveLength(0);
   });
+  it('shows reserved and available coupon uses to both the administrator and its seller',()=>{
+    coupon('CAPACITY',{maxUses:2});
+    reserveOrder('one',cart,'CAPACITY',{});
+    reserveOrder('two',cart,'CAPACITY',{});
+    const counts = () => {
+      for (const account of [accounts()[0],accounts()[1]]) {
+        expect(dashboard(account).coupons[0]).toMatchObject({paidUses:1,pendingUses:1,remainingUses:0});
+      }
+    };
+    confirmOrder(paid('one'));
+    counts();
+    confirmOrder(paid('two',22500,3));
+    expect(dashboard(accounts()[1]).coupons[0]).toMatchObject({paidUses:1,pendingUses:0,remainingUses:1});
+    expect(dashboard(accounts()[2]).coupons).toEqual([]);
+  });
   it('keeps code attribution immutable and validates seller identity',()=>{
     coupon(); expect(()=>coupon()).toThrow(); expect(()=>coupon('INVALID',{sellerId:'admin'})).toThrow();
     expect(()=>coupon('ALLFREE',{value:100})).toThrow();
