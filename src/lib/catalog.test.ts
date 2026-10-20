@@ -18,6 +18,9 @@ it('offers all confirmed variants with matching server prices and local photos',
   for(const p of CATALOG) expect(existsSync('public'+p.image)).toBe(true);
   for(const p of SALE_PRODUCTS) expect(normalizeCartItems([{product:p.name,quantity:1}])[0].unitPrice).toBe(p.price);
   expect(SALE_PRODUCTS.filter(p=>p.slug.endsWith('-logo'))).toHaveLength(6);
+  const naturalPets=CATALOG.filter(p=>p.code.startsWith('FAM-MAS-NAT-'));
+  expect(naturalPets).toHaveLength(7);
+  expect(new Set(naturalPets.map(p=>p.image)).size).toBe(7);
 });
 it('prevents direct purchase of PA-004 until its price is confirmed',()=>{
   const p=CATALOG.find(p=>p.code==='PA-004')!;

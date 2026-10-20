@@ -41,9 +41,9 @@ try {
   const cartHtml=await (await timedFetch(base+'/comprar')).text();
   assert.equal((cartHtml.match(/data-product=/g)||[]).length,26);
   const assets=[...new Set([...catalogHtml.matchAll(/src="(\/images\/products\/[^\"]+\.webp)"/g)].map(m=>m[1]))];
-  assert.equal(assets.length,21);
+  assert.equal(assets.length,24);
   for(const image of assets) assert.equal((await timedFetch(base+image)).status,200,image);
-  console.log('Smoke: October catalog, 21 images, 5% discount and 10% net commission checked');
+  console.log('Smoke: October catalog, 24 images, 5% discount and 10% net commission checked');
   const partner={name:'Example applicant',email:'applicant@example.test',phone:'test phone',city:'Example city',mode:'mayorista',consent:'yes'};
   assert.equal((await post('/api/partners/apply',{...partner,consent:''})).status,400);
   assert.equal((await post('/api/partners/apply',partner)).status,303);
