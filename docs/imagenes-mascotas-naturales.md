@@ -16,11 +16,11 @@ evitar que una imagen antigua quede en caché.
 |---|---|---|
 | Individual | fam-mas-nat-01-v2.webp | Una figura, sin caja |
 | 3 sin logo | fam-mas-nat-03-v2.webp | Tres figuras, tres divisiones, tapa lisa |
-| 3 con logo | fam-mas-nat-03-logo-v2.webp | Misma cantidad, «Tu logo aquí» en la tapa |
+| 3 con logo | fam-mas-nat-03-logo-v3.webp | Misma cantidad, «Tu logo aquí» en la tapa |
 | 6 sin logo | fam-mas-nat-06-v2.webp | Seis figuras en seis divisiones, sin espacios vacíos |
-| 6 con logo | fam-mas-nat-06-logo-v2.webp | Misma cantidad, «Tu logo aquí» en la tapa |
+| 6 con logo | fam-mas-nat-06-logo-v3.webp | Misma cantidad, «Tu logo aquí» en la tapa |
 | 8 sin logo | fam-mas-nat-08-v2.webp | Ocho figuras en ocho divisiones, tapa lisa |
-| 8 con logo | fam-mas-nat-08-logo-v2.webp | Misma cantidad, «Tu logo aquí» en la tapa |
+| 8 con logo | fam-mas-nat-08-logo-v3.webp | Misma cantidad, «Tu logo aquí» en la tapa |
 
 ## Prompts de producción
 
@@ -36,18 +36,22 @@ producto completo y figuras contables sin ocultamientos. Ninguna marca adicional
   una por división, tul amarillo suave. Tapa y caja completamente lisas.
 - **3 con logo:** conservar exactamente la imagen de tres figuras y añadir solo
   un marco rectangular fino con el texto exacto «Tu logo aquí», incluida la tilde,
-  como grabado marrón en el interior de la tapa.
+  como grabado marrón en la cara exterior superior de la tapa separada, apoyada junto a la caja.
 - **6 sin logo:** caja exclusiva de seis divisiones en dos filas de tres, una figura
   por división. Total seis figuras, seis compartimentos ocupados y ningún espacio
   vacío. Cámara elevada para ver todas. Caja y tapa lisas, sin texto.
 - **6 con logo:** conservar las seis figuras y sus posiciones; añadir únicamente
-  el grabado rectangular «Tu logo aquí» al interior de la tapa.
+  el grabado rectangular «Tu logo aquí» en la cara exterior superior de la tapa separada, apoyada junto a la caja.
 - **8 sin logo:** ocho divisiones en dos filas de cuatro y exactamente una figura
   en cada una. Total ocho figuras, todas visibles. Caja y tapa lisas, sin texto.
 - **8 con logo:** conservar las ocho figuras y sus posiciones; añadir únicamente
-  el grabado rectangular «Tu logo aquí» al interior de la tapa.
+  el grabado rectangular «Tu logo aquí» en la cara exterior superior de la tapa separada, apoyada junto a la caja.
 
 «Tu logo aquí» es una muestra de personalización, no el logo que recibe el cliente.
 Las notas públicas identifican las imágenes como ilustrativas. Las variantes
 pintadas conservan sus imágenes anteriores; esta actualización corresponde a
 las mascotas naturales solicitadas.
+
+## Corrección de tapa exterior (20 de octubre de 2026)
+
+Versiones con logo v3: tapa extraíble de madera apoyada detrás de la caja abierta, cara exterior superior visible con grabado «Tu logo aquí». El interior queda sin texto. Mantener exactamente 3 figuras en 3 divisiones, 6 en 2×3 y 8 en 2×4, todas ocupadas. Generadas con la herramienta integrada de imágenes a partir de las versiones anteriores. Fondo crema, madera natural y tul amarillo, fotografía ilustrativa cuadrada. Los archivos v2 se conservan para historial pero el catálogo utiliza v3.
