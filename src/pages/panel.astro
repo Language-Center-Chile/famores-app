@@ -40,6 +40,7 @@ const sellers = admin ? accounts().filter(a=>a.role==='seller') : [];
         <label>Valor<input name="value" value="5" type="number" min="1" step="1" required class="block w-full border rounded p-2" /></label>
         <label>Último día de vigencia (Chile)<input name="expiry" type="date" required class="block w-full border rounded p-2" /></label>
         <label>Máximo de usos<input name="maxUses" type="number" min="1" step="1" required class="block w-full border rounded p-2" /></label>
+        <label class="sm:col-span-2"><input name="publicListing" type="checkbox" value="yes" /> Mostrar este código a compradores en «Mi cuenta». Si no lo marcas, solo quienes reciban el código podrán usarlo.</label>
         <button class="bg-terapia-sage text-white rounded-xl p-3">Crear cupón</button>
       </form></section>}
     <h2 class="text-xl font-bold my-4">Cupones</h2>

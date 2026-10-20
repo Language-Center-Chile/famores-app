@@ -69,11 +69,11 @@ export const CATALOG: CatalogProduct[] = [
     "code": "FAM-PRO-PIN-20",
     "slug": "fam-pro-pin-20",
     "name": "Kit Pro pintado",
-    "price": 86275,
+    "price": 69170,
     "image": "/images/products/fam-pro-pin-20.webp",
     "width": 1000,
     "height": 914,
-    "description": "14 figuras + 6 elementos; caja y logo institucional. Pintado.",
+    "description": "14 figuras de un solo color base + 6 elementos pintados; caja y logo institucional incluidos.",
     "note": "",
     "purchasable": true
   },
@@ -85,7 +85,7 @@ export const CATALOG: CatalogProduct[] = [
     "image": "/images/products/fam-pro-psp-00.webp",
     "width": 1000,
     "height": 690,
-    "description": "14 figuras + 6 elementos; caja y logo. Familias pintadas.",
+    "description": "14 figuras de familias pintadas con detalles + 6 elementos sin pintar; caja y logo institucional incluidos.",
     "note": "",
     "purchasable": true
   },

@@ -47,6 +47,9 @@ jobs:
       - name: Smoke coupon and seller account flows
         run: node scripts/smoke-commerce.mjs
 
+      - name: Smoke local buyer, seller and administrator demo
+        run: node scripts/smoke-local-review.mjs
+
       - name: Start production server
         run: npm run start > /tmp/famores-server.log 2>&1 &
 

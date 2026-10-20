@@ -10,6 +10,7 @@ function clean(value: unknown, max = 160) {
 }
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  if (process.env.FAMORES_LOCAL_REVIEW === '1') return Response.json({error:'Modo de revisión local: los pagos están deshabilitados.'},{status:503});
   try {
     const body = await request.json();
     const email = clean(body.email).toLowerCase();

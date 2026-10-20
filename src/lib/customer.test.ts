@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { db, reserveOrder, loginAccounts, dashboard } from './commerce';
+import { db, reserveOrder, loginAccounts, dashboard, saveCoupon, buyerCoupons } from './commerce';
 import { authenticate, createSession, sessionAccount, passwordHash } from './account';
 import { registerCustomer, verifyCustomer, decryptMail, requestPasswordReset, resetCustomerPassword, customerData, saveCustomerProfile, closeCustomerAccount, dispatchAccountMail, customerRegistrationEnabled } from './customer';
 import { PRIVACY_VERSION } from './privacy';
@@ -80,4 +80,17 @@ it('keeps account email encrypted pending failed delivery and removes secrets af
 it('cannot register over a privileged administrator identity',async()=>{
   process.env.FAMORES_ACCOUNTS_JSON=JSON.stringify([{id:'admin',name:'Admin',email:'buyer@example.test',role:'admin',passwordHash:await passwordHash('test-only-password')}]);
   await registration();expect(db().prepare('SELECT COUNT(*) AS n FROM customers').get()?.n).toBe(0);
+});
+it('lists only published usable coupons for a verified buyer, without seller or commission data',async()=>{
+  const account=await buyer();
+  const code=(name:string,extras:Record<string,unknown>={})=>saveCoupon({code:name,kind:'percent',value:5,expiresAt:Date.now()+86400000,maxUses:1,publicListing:true,...extras});
+  code('PUBLIC5');code('PRIVATE5',{publicListing:false});code('EXPIRED5');code('DISABLED5');code('USED5');
+  db().prepare('UPDATE coupons SET expiresAt=0 WHERE code=?').run('EXPIRED5');
+  db().prepare('UPDATE coupons SET active=0 WHERE code=?').run('DISABLED5');
+  reserveOrder('reserved',cart,'USED5',{});
+  const visible=buyerCoupons(account);
+  expect(visible.map(c=>c.code)).toEqual(['PUBLIC5']);
+  expect(Object.keys(visible[0]).sort()).toEqual(['code','expiresAt','kind','value']);
+  expect(()=>buyerCoupons({...account,role:'seller'})).toThrow();
+  expect(()=>buyerCoupons({...account,id:'missing'})).toThrow();
 });

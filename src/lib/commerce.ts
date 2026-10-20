@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { calculateCartOrder, type CartSelection } from './cart';
 
 export type Account = { id: string; name: string; email: string; role: 'admin' | 'seller' | 'customer'; passwordHash: string };
-export type Coupon = { code: string; sellerId: string | null; kind: 'percent' | 'fixed'; value: number; expiresAt: number; maxUses: number; active: number; commissionBps: number };
+export type Coupon = { code: string; sellerId: string | null; kind: 'percent' | 'fixed'; value: number; expiresAt: number; maxUses: number; active: number; commissionBps: number; publicListing: number };
 let currentDb: DatabaseSync | undefined;
 let currentPath = '';
 export const commerceEnabled = () => Boolean(process.env.FAMORES_DB_PATH);
@@ -37,6 +37,7 @@ export function db() {
   if (!columns.some(c=>c.name==='commission')) currentDb.exec('ALTER TABLE orders ADD COLUMN commission INTEGER NOT NULL DEFAULT 0');
   const couponColumns = currentDb.prepare('PRAGMA table_info(coupons)').all();
   if (!couponColumns.some(c=>c.name==='commissionBps')) currentDb.exec('ALTER TABLE coupons ADD COLUMN commissionBps INTEGER NOT NULL DEFAULT 0');
+  if (!couponColumns.some(c=>c.name==='publicListing')) currentDb.exec('ALTER TABLE coupons ADD COLUMN publicListing INTEGER NOT NULL DEFAULT 0');
   return currentDb;
 }
 export function transaction<T>(fn: () => T): T {
@@ -76,12 +77,24 @@ export function saveCoupon(input: Record<string, unknown>) {
     code: normalizeCode(input.code), sellerId: typeof input.sellerId === 'string' && input.sellerId ? input.sellerId : null,
     kind: input.kind as Coupon['kind'], value: Number(input.value), expiresAt: Number(input.expiresAt), maxUses: Number(input.maxUses), active: input.active === false ? 0 : 1,
     commissionBps: input.sellerId ? Number(input.commissionBps ?? 1000) : 0,
+    publicListing: input.publicListing === true ? 1 : 0,
   };
   if (!['percent','fixed'].includes(coupon.kind) || !Number.isSafeInteger(coupon.value) || coupon.value < 1 || (coupon.kind === 'percent' && coupon.value > 99) || !Number.isSafeInteger(coupon.expiresAt) || coupon.expiresAt <= Date.now() || !Number.isSafeInteger(coupon.maxUses) || coupon.maxUses < 1 || (coupon.sellerId && !accounts().some(a => a.id === coupon.sellerId && a.role === 'seller'))) throw new Error('Condiciones del cupón no válidas.');
   if (!Number.isSafeInteger(coupon.commissionBps) || coupon.commissionBps < 0 || coupon.commissionBps > 10000) throw new Error('Comisión no válida.');
   // Issued codes are immutable so old sales retain their attribution and terms.
-  db().prepare('INSERT INTO coupons(code,sellerId,kind,value,expiresAt,maxUses,active,commissionBps) VALUES(?,?,?,?,?,?,?,?)').run(coupon.code,coupon.sellerId,coupon.kind,coupon.value,coupon.expiresAt,coupon.maxUses,coupon.active,coupon.commissionBps);
+  db().prepare('INSERT INTO coupons(code,sellerId,kind,value,expiresAt,maxUses,active,commissionBps,publicListing) VALUES(?,?,?,?,?,?,?,?,?)').run(coupon.code,coupon.sellerId,coupon.kind,coupon.value,coupon.expiresAt,coupon.maxUses,coupon.active,coupon.commissionBps,coupon.publicListing);
   return coupon;
+}
+export function buyerCoupons(account: Account) {
+  if (account.role !== 'customer' || !db().prepare('SELECT id FROM customers WHERE id=? AND verifiedAt IS NOT NULL').get(account.id)) throw new Error('Acceso de comprador requerido.');
+  const sellers = new Set(accounts().filter(a=>a.role==='seller').map(a=>a.id));
+  // Only explicitly published codes are discoverable. Do not expose seller identity,
+  // commissions, capacity or private campaign codes to buyers.
+  const coupons=db().prepare(`SELECT c.code,c.kind,c.value,c.expiresAt,c.sellerId FROM coupons c
+    WHERE c.publicListing=1 AND c.active=1 AND c.expiresAt>?
+    AND (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status IN (1,2)) < c.maxUses
+    ORDER BY c.expiresAt,c.code`).all(Date.now());
+  return coupons.filter(c=>!c.sellerId || sellers.has(String(c.sellerId))).map(c=>({code:String(c.code),kind:String(c.kind),value:Number(c.value),expiresAt:Number(c.expiresAt)}));
 }
 export function quote(selection: CartSelection, code?: unknown) {
   const base = calculateCartOrder(selection);

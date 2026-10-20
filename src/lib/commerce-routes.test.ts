@@ -10,6 +10,7 @@ const selection={items:[{product:'Set Sin Pintar',quantity:1}],courier:'retiro',
 const create=()=>createPayment({request:new Request('https://famores.com/api/flow/create-cart-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(selection)})} as any);
 const confirm=()=>confirmation({request:new Request('https://famores.com/api/flow/confirmation',{method:'POST',body:new URLSearchParams({token:'local-test-token'})})} as any);
 beforeEach(async()=>{
+  delete process.env.FAMORES_LOCAL_REVIEW;
   process.env.FAMORES_DB_PATH=':memory:';
   process.env.FAMORES_ACCOUNTS_JSON=JSON.stringify([{id:'admin',name:'Admin',email:'admin@example.test',role:'admin',passwordHash:await passwordHash('test-only-password')}]);
   for(const table of ['coupons','orders','sessions','attempts','applications','notifications']) db().exec(`DELETE FROM ${table}`);
@@ -17,6 +18,14 @@ beforeEach(async()=>{
   saveCoupon({code:'SALE10',kind:'percent',value:10,maxUses:1,expiresAt:Date.now()+86400000});
   mocks.create.mockReset(); mocks.status.mockReset();
   mocks.create.mockImplementation(async(_path,params)=>{ orderId=params.commerceOrder; return {url:'https://sandbox.flow.cl/checkout',token:'local-only',flowOrder:123}; });
+});
+it('blocks payment creation before reservations or provider calls in local review',async()=>{
+  process.env.FAMORES_LOCAL_REVIEW='1';
+  try{
+    expect((await create()).status).toBe(503);
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(db().prepare('SELECT COUNT(*) AS n FROM orders').get()?.n).toBe(0);
+  }finally{delete process.env.FAMORES_LOCAL_REVIEW;}
 });
 it('persists the authoritative discounted amount before creating Flow payment and confirms exactly once',async()=>{
   const response=await create(); expect(response.status).toBe(200);

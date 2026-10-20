@@ -9,6 +9,7 @@ it('uses the October prices and keeps the mixed Pro immediately after painted Pr
   expect(CATALOG.find(p=>p.code==='FAM-STD-PIN-14')?.price).toBe(48000);
   expect(CATALOG.find(p=>p.code==='FAM-MAS-NAT-01')?.price).toBe(2975);
   expect(CATALOG.find(p=>p.code==='FAM-MAS-PIN-01')?.price).toBe(5355);
+  expect(CATALOG.find(p=>p.code==='FAM-PRO-PIN-20')).toMatchObject({price:69170,description:expect.stringContaining('color base')});
 });
 it('offers all confirmed variants with matching server prices and local photos',()=>{
   expect(SALE_PRODUCTS).toHaveLength(26);

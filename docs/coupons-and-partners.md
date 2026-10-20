@@ -198,3 +198,32 @@ su comisión y base neta en la reserva; los callbacks confirmados hacen que la
 comisión aparezca en totales pagados, sin duplicarla. Pendientes, rechazados y
 anulados no suman comisión devengada. El panel la registra para liquidación
 operativa; no envía pagos al vendedor ni certifica utilidad.
+
+
+### Precio Pro y cupones de compradores (20/10/2026)
+
+FAM-PRO-PIN-20 (color base): **$69.170 IVA incluido**, neto $58.126 e IVA
+$11.044. Se toma el PSP de $77.500 como referencia de utilidad en pesos antes
+de promociones, suponiendo iguales los demás costos: pintura de 14 figuras
+simples 14 × $500 = $7.000, más casa $500 y cinco extras × $100 = $1.000.
+Pintura total $8.000 frente a $15.000 del PSP: ahorro neto $7.000. La Excel
+registra el cálculo; no se presenta como validación de costos absolutos.
+
+La cuenta de comprador mantiene pedidos, perfil opcional y controles de cuenta.
+Ahora incluye «Cupones disponibles» con códigos publicados por administración,
+descuento, vencimiento y enlace para usarlos en el carrito. Cada cupón necesita
+la elección explícita «Mostrar este código a compradores». Los códigos antiguos
+y privados no se publican automáticamente. No se muestran códigos vencidos,
+agotados, desactivados ni asociados a vendedores retirados. Los datos del
+vendedor y sus comisiones no aparecen en esa sección. El checkout revalida
+cualquier código y su capacidad; ver el cupón no reserva su uso.
+
+### Revisión local en VS Code
+
+Ejecutar `npm ci` y `npm run dev:review` con Node >=22.13.0. El comando prepara
+una base temporal, crea únicamente cuentas ficticias y publica DEMO5 para
+probarlo desde «Mi cuenta». Imprime las direcciones y credenciales de prueba.
+Busca un puerto local libre desde 3000; no sobrescribe `.env` ni bases reales.
+Pagos, callbacks externos y correo permanecen deshabilitados. El registro y
+la recuperación reales requieren configurar el correo fuera de esta demo.
+Al cerrar el proceso se elimina la base temporal. No se hace merge ni deploy.
