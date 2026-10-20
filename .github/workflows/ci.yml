@@ -2,7 +2,7 @@ name: CI — Release Gate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/coupons-seller-dashboard]
   push:
     branches: [main]
   workflow_dispatch:

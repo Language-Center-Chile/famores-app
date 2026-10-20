@@ -20,9 +20,9 @@ beforeEach(async()=>{
 });
 it('persists the authoritative discounted amount before creating Flow payment and confirms exactly once',async()=>{
   const response=await create(); expect(response.status).toBe(200);
-  expect(mocks.create.mock.calls[0][1].amount).toBe(22500);
-  expect(db().prepare('SELECT status,total FROM orders WHERE id=?').get(orderId)).toMatchObject({status:1,total:22500});
-  mocks.status.mockResolvedValue({commerceOrder:orderId,flowOrder:123,status:2,amount:22500,currency:'CLP'});
+  expect(mocks.create.mock.calls[0][1].amount).toBe(27000);
+  expect(db().prepare('SELECT status,total FROM orders WHERE id=?').get(orderId)).toMatchObject({status:1,total:27000});
+  mocks.status.mockResolvedValue({commerceOrder:orderId,flowOrder:123,status:2,amount:27000,currency:'CLP'});
   expect((await confirm()).status).toBe(200);expect((await confirm()).status).toBe(200);
   expect(dashboard(accounts()[0]).totals?.paidOrders).toBe(1);
   expect(db().prepare('SELECT COUNT(*) AS n FROM notifications').get()?.n).toBe(1);

@@ -99,8 +99,8 @@ de liberar esa reserva; no se ofrece un botón para marcar una venta pagada a ma
 Los pedidos históricos previos al módulo no se importan automáticamente; sus
 callbacks siguen aceptándose. El dashboard muestra ventas desde la activación.
 Una confirmación de un pedido no registrado no crea una venta inventada.
-Los totales incluyen despacho y caja y están etiquetados así. No representan
-comisiones ni utilidades; las tasas y reglas comerciales no están definidas.
+Los totales cobrados incluyen despacho y embalaje de transporte. La comisión se
+registra aparte y no equivale a utilidad.
 Reembolsos posteriores a un pago requieren conciliación adicional (no implementada).
 
 ## Notificaciones
@@ -127,7 +127,7 @@ compartida y un trabajador de outbox. Últimos 500 pedidos y 100 solicitudes/avi
 visibles; métricas de pagos calculadas sobre todo el historial. La base puede crecer:
 política de retención, exportaciones y borrado de solicitudes aún no están incluidos.
 El esquema inicial se crea al abrir DB; cambios futuros necesitan migraciones.
-No hay integración automática a Sheets/orquestador ni liquidación de comisiones.
+No hay integración automática a Sheets/orquestador ni pago automático de comisiones.
 
 La ampliación de compradores y la preparación de privacidad se detallan en [privacidad y cuentas](privacy-and-customers.md).
 
@@ -160,3 +160,41 @@ los pagos recibidos durante el cambio antes de reabrir la ampliación.
 base temporal, prueba login, CSRF, consentimiento, cálculo y aislamiento por
 vendedor, y elimina la base al terminar. No llama a pagos ni envía mensajes.
 El pipeline de CI ejecuta el smoke después del build.
+
+
+## Catálogo y acuerdo comercial de octubre de 2026
+
+`src/lib/catalog.ts` es la única fuente de productos, precios finales con IVA,
+códigos, variantes e imágenes para portada y carrito. Incluye Standard,
+Personalizado, Pro (PSP justo después de PIN), Esencial, mascotas individuales,
+seis cajas de mascotas y sus seis opciones con logo, y Pint Art. PA-004 se
+muestra solo para cotizar: la Excel conserva $26.000 y Gamma muestra Antifaces
+Matricaria a $25.000 sin confirmar ese código. No se vende con precio dudoso.
+
+Los precios se contrastaron el 20/10/2026 con la pestaña Productos de la Excel
+`Famores_Codigos_Catalogo_Octubre_2026.xlsx` y
+https://gamma.app/docs/38wsdwaih1fplnl. Imágenes locales tomadas de las fichas
+Gamma; cajas de 6/8 mascotas y productos personalizados indican imagen referencial.
+El embalaje de transporte del checkout es distinto de la caja de presentación
+incluida en cada kit.
+
+Al crear un código desde el panel, el descuento sugerido es **5%**. Cada cupón
+asignado a un vendedor nuevo registra **10%** de comisión sobre el neto de
+productos después del descuento (dividir por 1,19 y redondear al peso).
+Envío y embalaje de transporte no generan descuento ni comisión. No se apilan
+cupones. Los códigos no se activan automáticamente: el administrador elige
+el código, vendedor, vencimiento y cupo desde el panel ya existente.
+
+Ejemplo: Standard pintado $48.000. Descuento $2.400; comprador paga $45.600;
+neto $38.319; comisión $3.832. Si Traisy también pinta las 14 figuras cobra
+$15.000 aparte; quedan $19.487 antes de figuras base y demás costos. Los
+extras mantienen sus tarifas de pintura: figura pequeña $100; casa un color
+$500; casa con diseño $1.000. No se infiere quién pinta por el código de venta.
+Estos costos no se deducen de la comisión ni se transfieren automáticamente.
+
+Las columnas SQLite se agregan al abrir la base. Cupones y pedidos anteriores
+conservan comisión cero: no se recalcula el historial. Un nuevo pedido guarda
+su comisión y base neta en la reserva; los callbacks confirmados hacen que la
+comisión aparezca en totales pagados, sin duplicarla. Pendientes, rechazados y
+anulados no suman comisión devengada. El panel la registra para liquidación
+operativa; no envía pagos al vendedor ni certifica utilidad.

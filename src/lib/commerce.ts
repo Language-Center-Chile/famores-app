@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { calculateCartOrder, type CartSelection } from './cart';
 
 export type Account = { id: string; name: string; email: string; role: 'admin' | 'seller' | 'customer'; passwordHash: string };
-export type Coupon = { code: string; sellerId: string | null; kind: 'percent' | 'fixed'; value: number; expiresAt: number; maxUses: number; active: number };
+export type Coupon = { code: string; sellerId: string | null; kind: 'percent' | 'fixed'; value: number; expiresAt: number; maxUses: number; active: number; commissionBps: number };
 let currentDb: DatabaseSync | undefined;
 let currentPath = '';
 export const commerceEnabled = () => Boolean(process.env.FAMORES_DB_PATH);
@@ -33,6 +33,10 @@ export function db() {
   `);
   const columns = currentDb.prepare('PRAGMA table_info(orders)').all();
   if (!columns.some(c=>c.name==='buyerId')) currentDb.exec('ALTER TABLE orders ADD COLUMN buyerId TEXT');
+  // Existing coupons and orders keep their original terms: no retroactive commissions.
+  if (!columns.some(c=>c.name==='commission')) currentDb.exec('ALTER TABLE orders ADD COLUMN commission INTEGER NOT NULL DEFAULT 0');
+  const couponColumns = currentDb.prepare('PRAGMA table_info(coupons)').all();
+  if (!couponColumns.some(c=>c.name==='commissionBps')) currentDb.exec('ALTER TABLE coupons ADD COLUMN commissionBps INTEGER NOT NULL DEFAULT 0');
   return currentDb;
 }
 export function transaction<T>(fn: () => T): T {
@@ -71,15 +75,17 @@ export function saveCoupon(input: Record<string, unknown>) {
   const coupon: Coupon = {
     code: normalizeCode(input.code), sellerId: typeof input.sellerId === 'string' && input.sellerId ? input.sellerId : null,
     kind: input.kind as Coupon['kind'], value: Number(input.value), expiresAt: Number(input.expiresAt), maxUses: Number(input.maxUses), active: input.active === false ? 0 : 1,
+    commissionBps: input.sellerId ? Number(input.commissionBps ?? 1000) : 0,
   };
   if (!['percent','fixed'].includes(coupon.kind) || !Number.isSafeInteger(coupon.value) || coupon.value < 1 || (coupon.kind === 'percent' && coupon.value > 99) || !Number.isSafeInteger(coupon.expiresAt) || coupon.expiresAt <= Date.now() || !Number.isSafeInteger(coupon.maxUses) || coupon.maxUses < 1 || (coupon.sellerId && !accounts().some(a => a.id === coupon.sellerId && a.role === 'seller'))) throw new Error('Condiciones del cupón no válidas.');
+  if (!Number.isSafeInteger(coupon.commissionBps) || coupon.commissionBps < 0 || coupon.commissionBps > 10000) throw new Error('Comisión no válida.');
   // Issued codes are immutable so old sales retain their attribution and terms.
-  db().prepare('INSERT INTO coupons(code,sellerId,kind,value,expiresAt,maxUses,active) VALUES(?,?,?,?,?,?,?)').run(coupon.code,coupon.sellerId,coupon.kind,coupon.value,coupon.expiresAt,coupon.maxUses,coupon.active);
+  db().prepare('INSERT INTO coupons(code,sellerId,kind,value,expiresAt,maxUses,active,commissionBps) VALUES(?,?,?,?,?,?,?,?)').run(coupon.code,coupon.sellerId,coupon.kind,coupon.value,coupon.expiresAt,coupon.maxUses,coupon.active,coupon.commissionBps);
   return coupon;
 }
 export function quote(selection: CartSelection, code?: unknown) {
   const base = calculateCartOrder(selection);
-  if (!code) return { ...base, discount: 0, couponCode: null, sellerId: null };
+  if (!code) return { ...base, discount: 0, couponCode: null, sellerId: null, productNet: Math.round(base.subtotal/1.19), commission: 0, commissionBps: 0 };
   const normalized = normalizeCode(code);
   const coupon = db().prepare('SELECT * FROM coupons WHERE code=?').get(normalized) as Coupon | undefined;
   if (!coupon || !coupon.active || coupon.expiresAt <= Date.now()) throw new Error('Cupón no válido o vencido.');
@@ -87,13 +93,15 @@ export function quote(selection: CartSelection, code?: unknown) {
   // Pending payments consume capacity too: do not sell more uses than available.
   const usage = db().prepare('SELECT COUNT(*) AS count FROM orders WHERE couponCode=? AND status IN (1,2)').get(normalized) as { count: number };
   if (usage.count >= coupon.maxUses) throw new Error('Cupón agotado.');
-  const discount = Math.min(base.subtotal - 1, coupon.kind === 'percent' ? Math.floor(base.subtotal * coupon.value / 100) : coupon.value);
-  return { ...base, discount, couponCode: normalized, sellerId: coupon.sellerId, total: base.total - discount };
+  const discount = Math.min(base.subtotal - 1, coupon.kind === 'percent' ? Math.round(base.subtotal * coupon.value / 100) : coupon.value);
+  const productNet = Math.round((base.subtotal-discount)/1.19);
+  const commission = coupon.sellerId ? Math.round(productNet*coupon.commissionBps/10000) : 0;
+  return { ...base, discount, couponCode: normalized, sellerId: coupon.sellerId, total: base.total - discount, productNet, commission, commissionBps: coupon.commissionBps };
 }
 export function reserveOrder(id: string, selection: CartSelection, code: unknown, details: unknown, buyerId: string | null = null) {
   return transaction(() => {
     const calculated = quote(selection, code);
-    db().prepare('INSERT INTO orders(id,sellerId,couponCode,discount,total,createdAt,details,buyerId) VALUES(?,?,?,?,?,?,?,?)').run(id,calculated.sellerId,calculated.couponCode,calculated.discount,calculated.total,Date.now(),JSON.stringify({ breakdown: calculated, customer: details }),buyerId);
+    db().prepare('INSERT INTO orders(id,sellerId,couponCode,discount,total,createdAt,details,buyerId,commission) VALUES(?,?,?,?,?,?,?,?,?)').run(id,calculated.sellerId,calculated.couponCode,calculated.discount,calculated.total,Date.now(),JSON.stringify({ breakdown: calculated, customer: details }),buyerId,calculated.commission);
     return calculated;
   });
 }
@@ -115,13 +123,13 @@ export function confirmOrder(payment: { commerceOrder?: string; flowOrder?: numb
 export function dashboard(account: Account) {
   if (account.role === 'customer') throw new Error('Usa tu panel de comprador.');
   const admin = account.role === 'admin';
-  const orders = db().prepare(`SELECT id,sellerId,couponCode,discount,total,status,createdAt FROM orders ${admin ? '' : 'WHERE sellerId=?'} ORDER BY createdAt DESC LIMIT 500`).all(...(admin ? [] : [account.id]));
+  const orders = db().prepare(`SELECT id,sellerId,couponCode,discount,total,commission,status,createdAt FROM orders ${admin ? '' : 'WHERE sellerId=?'} ORDER BY createdAt DESC LIMIT 500`).all(...(admin ? [] : [account.id]));
   const coupons = db().prepare(`SELECT c.*,
     (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=2) AS paidUses,
     (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status=1) AS pendingUses,
     MAX(0, c.maxUses - (SELECT COUNT(*) FROM orders o WHERE o.couponCode=c.code AND o.status IN (1,2))) AS remainingUses
     FROM coupons c ${admin ? '' : 'WHERE sellerId=?'} ORDER BY code`).all(...(admin ? [] : [account.id]));
-  const totals = db().prepare(`SELECT COUNT(*) AS paidOrders, COALESCE(SUM(total),0) AS paidTotal, COALESCE(SUM(discount),0) AS discounts FROM orders WHERE status=2 ${admin ? '' : 'AND sellerId=?'}`).get(...(admin ? [] : [account.id]));
+  const totals = db().prepare(`SELECT COUNT(*) AS paidOrders, COALESCE(SUM(total),0) AS paidTotal, COALESCE(SUM(discount),0) AS discounts, COALESCE(SUM(commission),0) AS commissions FROM orders WHERE status=2 ${admin ? '' : 'AND sellerId=?'}`).get(...(admin ? [] : [account.id]));
   return { orders, coupons, totals, applications: admin ? db().prepare('SELECT * FROM applications ORDER BY createdAt DESC LIMIT 100').all() : [], notifications: admin ? db().prepare('SELECT * FROM notifications ORDER BY createdAt DESC LIMIT 100').all() : [] };
 }
 export function consumeAttempt(key: string, limit: number, windowMs: number) {

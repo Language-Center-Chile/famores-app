@@ -3,16 +3,10 @@ import { commerceEnabled } from '../lib/commerce';
 import { sessionAccount, SESSION_COOKIE } from '../lib/account';
 import { customerData } from '../lib/customer';
 import Layout from "../layouts/Layout.astro";
+import { SALE_PRODUCTS } from "../lib/catalog";
 import { communesByRegion, regions } from "../data/chile-communes";
 
-const products = [
-  { slug: "set-standard-pintado", name: "Set Standard Pintado", price: 39990, image: "/images/products/set-standard-pintado.webp" },
-  { slug: "set-standard-con-expresiones", name: "Set Standard con Expresiones", price: 42990, image: "/images/products/set-standard-con-expresiones.webp" },
-  { slug: "set-sin-pintar", name: "Set Sin Pintar", price: 25000, image: "/images/products/set-sin-pintar-1.jpg" },
-  { slug: "set-personalizado", name: "Set Personalizado", price: 45000, image: "/images/products/set-personalizado-aymara.webp" },
-  { slug: "mascota-pintada", name: "Mascota Pintada", price: 4500, image: "/images/products/mascota-pintada-2.jpg" },
-  { slug: "mascota-sin-pintar", name: "Mascota Sin Pintar", price: 2500, image: "/images/products/mascota-sin-pintar-1.jpg" },
-];
+const products = SALE_PRODUCTS;
 const loggedAccount=commerceEnabled()?sessionAccount(Astro.cookies.get(SESSION_COOKIE)?.value):null;
 const buyer=loggedAccount?.role==='customer'?loggedAccount:null;
 const savedProfile=buyer?customerData(buyer).account.profile:{};
@@ -39,7 +33,10 @@ if(buyer) Astro.response.headers.set('Cache-Control','no-store');
               </div>
               <div class="p-4 sm:p-5">
                 <h3 class="font-semibold text-lg text-terapia-text break-words">{product.name}</h3>
-                <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")}</p>
+                <p class="text-xs text-gray-500 mt-2">{product.code}</p>
+                <p class="text-sm text-gray-600 mt-2">{product.description}</p>
+                {product.note && <p class="text-xs text-gray-500 mt-2">{product.note}</p>}
+                <p class="font-bold text-xl text-terapia-sageDark mt-1">${product.price.toLocaleString("es-CL")} <span class="text-xs font-normal">IVA incluido</span></p>
                 <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <span class="text-sm font-medium text-gray-600">Cantidad</span>
                   <div class="flex items-center rounded-xl border border-stone-200 overflow-hidden" role="group" aria-label={`Cantidad de ${product.name}`}>
@@ -143,7 +140,7 @@ if(buyer) Astro.response.headers.set('Cache-Control','no-store');
           <div class="flex justify-between gap-3"><span>Productos</span><strong id="subtotal">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Descuento</span><strong id="discount">$0</strong></div>
           <div class="flex justify-between gap-3"><span>Despacho</span><strong id="shipping">$0</strong></div>
-          <div class="flex justify-between gap-3"><span>Caja</span><strong id="box">$0</strong></div>
+          <div class="flex justify-between gap-3"><span>Embalaje de transporte</span><strong id="box">$0</strong></div>
           <div class="flex justify-between gap-3 text-lg pt-2"><span class="font-bold">Total a pagar ahora</span><strong id="total">$0</strong></div>
         </div>
 
