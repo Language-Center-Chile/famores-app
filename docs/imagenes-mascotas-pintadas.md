@@ -14,11 +14,11 @@ En `public/images/products/`, WebP de 960 × 960:
 |---|---|
 | fam-mas-pin-01-v2.webp | Una mascota pintada, sola y sin caja |
 | fam-mas-pin-03-v2.webp | Tres mascotas, tres divisiones ocupadas, tapa lisa |
-| fam-mas-pin-03-logo-v2.webp | Tres mascotas, tres divisiones, «Tu logo aquí» |
+| fam-mas-pin-03-logo-v3.webp | Tres mascotas, tres divisiones, «Tu logo aquí» |
 | fam-mas-pin-06-v2.webp | Seis mascotas, dos filas de tres divisiones ocupadas, tapa lisa |
-| fam-mas-pin-06-logo-v2.webp | Seis mascotas, seis divisiones, «Tu logo aquí» |
+| fam-mas-pin-06-logo-v3.webp | Seis mascotas, seis divisiones, «Tu logo aquí» |
 | fam-mas-pin-08-v2.webp | Ocho mascotas, dos filas de cuatro divisiones ocupadas, tapa lisa |
-| fam-mas-pin-08-logo-v2.webp | Ocho mascotas, ocho divisiones, «Tu logo aquí» |
+| fam-mas-pin-08-logo-v3.webp | Ocho mascotas, ocho divisiones, «Tu logo aquí» |
 
 El catálogo y la compra comparten estas referencias en `src/lib/catalog.ts`.
 Las notas indican que las imágenes son ilustrativas y que el texto del logo
@@ -47,10 +47,29 @@ Variaciones:
 - **Ocho:** exactamente ocho mascotas en dos filas de cuatro; exactamente ocho
   divisiones, todas ocupadas. Tapa interior completamente lisa.
 - **Con logo (3, 6 y 8):** editar la imagen pintada correspondiente cambiando
-  únicamente el interior de la tapa. Añadir un marco rectangular fino grabado
-  y el texto exacto «Tu logo aquí», incluida la tilde, en marrón legible.
+  únicamente la tapa por una tapa extraíble apoyada detrás de la caja,
+  con su cara exterior superior visible. Añadir un marco rectangular fino grabado
+  y el texto exacto «Tu logo aquí», incluida la tilde, en marrón legible sobre esa cara exterior; el interior queda sin texto.
   Mantener cantidad de figuras y divisiones, pintura, posiciones, cámara,
   caja, tul, sombras y fondo. No añadir otras marcas ni ocultar figuras.
 
 Las salidas se revisaron visualmente antes de convertirlas a WebP. La
 conversión solo reduce el tamaño a 960 × 960 y codifica con calidad 88.
+
+## Corrección de tapa exterior (20/10/2026)
+
+Las tres variantes pintadas con logo (3, 6 y 8 figuras) usan ahora v3, con
+la inscripción en la cara exterior de una tapa extraíble apoyada detrás de
+la caja abierta. Se conservan las cantidades, compartimentos, diseños pintados,
+tul amarillo y fondo crema. Las versiones v2 permanecen solo como historial.
+
+Edición con la herramienta integrada `image_gen` (precise-object-edit): cada
+imagen pintada v2 como objetivo y la natural de tres figuras con logo v3 como
+referencia de posición de tapa. Instrucción: sustituir la tapa con grabado
+interior por una tapa plana extraíble con «Tu logo aquí» grabado en su cara
+exterior superior; preservar exactamente 3/6/8 mascotas pintadas y sus
+compartimentos, colores, poses, luz y fondo. Sin elementos adicionales.
+
+Los archivos finales son `public/images/products/fam-mas-pin-03-logo-v3.webp`,
+`fam-mas-pin-06-logo-v3.webp` y `fam-mas-pin-08-logo-v3.webp`. Catálogo y compra
+consumen las mismas referencias de `src/lib/catalog.ts`.
