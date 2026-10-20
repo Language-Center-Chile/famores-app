@@ -1,13 +1,7 @@
 import { BOX_PRICE, getShippingRate, COURIER_LABELS, type DomesticCourier } from "./checkout-config";
+import { PRODUCT_PRICES } from './catalog';
 
-export const CART_PRODUCTS = {
-  "Set Standard Pintado": 39990,
-  "Set Standard con Expresiones": 42990,
-  "Set Sin Pintar": 25000,
-  "Set Personalizado": 45000,
-  "Mascota Pintada": 4500,
-  "Mascota Sin Pintar": 2500,
-} as const;
+export const CART_PRODUCTS = PRODUCT_PRICES;
 
 export type CartProductName = keyof typeof CART_PRODUCTS;
 

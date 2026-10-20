@@ -53,7 +53,7 @@ describe("calculateOrder", () => {
     );
     expect(expectedShipping).not.toBeNull();
     expect(result.total).toBe(
-      PRODUCTS["Set Standard Pintado"] + 4500 + (expectedShipping ?? 0) + BOX_PRICE,
+      PRODUCTS["Set Standard Pintado"] + 5355 + (expectedShipping ?? 0) + BOX_PRICE,
     );
   });
 

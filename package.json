@@ -14,7 +14,8 @@
     "typecheck": "astro check",
     "test": "vitest run",
     "check:commerce-config": "node scripts/check-commerce-config.mjs",
-    "test:commerce-config": "vitest run scripts/check-commerce-config.test.mjs"
+    "test:commerce-config": "vitest run scripts/check-commerce-config.test.mjs",
+    "dev:review": "node scripts/dev-review.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.6",

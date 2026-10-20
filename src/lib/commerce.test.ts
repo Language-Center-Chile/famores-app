@@ -7,7 +7,7 @@ import { passwordHash, authenticate, createSession, sessionAccount, deleteSessio
 import { dispatchNotifications } from './notifications';
 const cart = { items:[{product:'Set Sin Pintar',quantity:1}],courier:'retiro' };
 const coupon = (code='TEST10',extras={}) => saveCoupon({code,sellerId:'seller1',kind:'percent',value:10,expiresAt:Date.now()+86400000,maxUses:2,...extras});
-const paid = (id='one',amount=22500,status=2) => ({commerceOrder:id,flowOrder:123,status,amount,currency:'CLP'});
+const paid = (id='one',amount=27000,status=2) => ({commerceOrder:id,flowOrder:123,status,amount,currency:'CLP'});
 beforeEach(async()=>{
   process.env.FAMORES_DB_PATH=':memory:';
   const hash = await passwordHash('test-only-password');
@@ -17,10 +17,38 @@ beforeEach(async()=>{
 });
 afterEach(()=>vi.unstubAllGlobals());
 describe('server coupons and payment persistence',()=>{
+  it('matches the agreed 5% discount and 10% net commission, with immutable paid snapshots',()=>{
+    coupon('TRAISY5',{value:5});
+    const selection={items:[{product:'Set Standard Pintado',quantity:1}],courier:'retiro'};
+    expect(quote(selection,'TRAISY5')).toMatchObject({discount:2400,total:45600,productNet:38319,commission:3832});
+    reserveOrder('commission-order',selection,'TRAISY5',{});
+    expect(dashboard(accounts()[1]).totals?.commissions).toBe(0);
+    confirmOrder(paid('commission-order',45600));
+    confirmOrder(paid('commission-order',45600));
+    expect(dashboard(accounts()[1]).totals?.commissions).toBe(3832);
+    expect(dashboard(accounts()[2]).totals?.commissions).toBe(0);
+    expect(dashboard(accounts()[1]).orders[0]).toMatchObject({commission:3832});
+  });
+  it('excludes VAT, delivery and transport packaging from commission and has no anonymous seller',()=>{
+    coupon('NET5',{value:5});
+    const selection={items:[{product:'Set Standard Pintado',quantity:1}],courier:'blue',region:'Metropolitana de Santiago',commune:'Peñalolén'};
+    expect(quote(selection,'NET5')).toMatchObject({total:50590,commission:3832});
+    expect(quote(selection).commission).toBe(0);
+    coupon('GENERAL5',{sellerId:null,value:5});
+    expect(quote(selection,'GENERAL5').commission).toBe(0);
+  });
+  it('does not invent commissions for legacy coupon terms or rejected payments',()=>{
+    coupon('LEGACY5',{value:5,commissionBps:0});
+    expect(quote(cart,'LEGACY5').commission).toBe(0);
+    reserveOrder('rejected',cart,'LEGACY5',{});
+    confirmOrder(paid('rejected',28500,3));
+    expect(dashboard(accounts()[1]).totals?.commissions).toBe(0);
+    expect(()=>coupon('BADCOM',{commissionBps:10001})).toThrow('Comisión');
+  });
   it('never trusts client prices and excludes delivery and box from discounts',()=>{
     coupon();
     const result=quote({...cart,courier:'blue',region:'Metropolitana de Santiago',commune:'Peñalolén'},' test10 ');
-    expect(result.discount).toBe(2500); expect(result.total).toBe(27490); expect(result.shippingPrice).toBe(3490); expect(result.boxPrice).toBe(1500);
+    expect(result.discount).toBe(3000); expect(result.total).toBe(31990); expect(result.shippingPrice).toBe(3490); expect(result.boxPrice).toBe(1500);
     expect(()=>quote({items:[{product:'toString',quantity:1}],courier:'retiro'},'TEST10')).toThrow('Producto');
   });
   it('caps fixed discounts while keeping a payable total',()=>{
@@ -37,9 +65,9 @@ describe('server coupons and payment persistence',()=>{
   });
   it('releases capacity only after verified rejection and counts paid sales once',()=>{
     coupon('SINGLE',{maxUses:1}); reserveOrder('one',cart,'SINGLE',{});
-    confirmOrder(paid('one',22500,3)); reserveOrder('two',cart,'SINGLE',{});
+    confirmOrder(paid('one',27000,3)); reserveOrder('two',cart,'SINGLE',{});
     expect(confirmOrder(paid('two'))).toBe(true); expect(confirmOrder(paid('two'))).toBe(false);
-    confirmOrder(paid('two',22500,1));
+    confirmOrder(paid('two',27000,1));
     expect(dashboard(accounts()[0]).totals?.paidOrders).toBe(1);
     expect(db().prepare('SELECT COUNT(*) AS n FROM notifications').get()?.n).toBe(1);
   });
@@ -66,7 +94,7 @@ describe('server coupons and payment persistence',()=>{
     };
     confirmOrder(paid('one'));
     counts();
-    confirmOrder(paid('two',22500,3));
+    confirmOrder(paid('two',27000,3));
     expect(dashboard(accounts()[1]).coupons[0]).toMatchObject({paidUses:1,pendingUses:0,remainingUses:1});
     expect(dashboard(accounts()[2]).coupons).toEqual([]);
   });
