@@ -326,8 +326,8 @@ export const CATALOG: CatalogProduct[] = [
     "width": 707,
     "height": 1000,
     "description": "Sobre de antifaces. Diseños para colorear.",
-    "note": "Precio y correspondencia con Antifaces Matricaria por confirmar. Solicita una cotización.",
-    "purchasable": false
+    "note": "",
+    "purchasable": true
   }
 ];
 export const SALE_PRODUCTS = CATALOG.filter(product => product.purchasable);

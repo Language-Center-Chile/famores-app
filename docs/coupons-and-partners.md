@@ -167,9 +167,8 @@ El pipeline de CI ejecuta el smoke después del build.
 `src/lib/catalog.ts` es la única fuente de productos, precios finales con IVA,
 códigos, variantes e imágenes para portada y carrito. Incluye Standard,
 Personalizado, Pro (PSP justo después de PIN), Esencial, mascotas individuales,
-seis cajas de mascotas y sus seis opciones con logo, y Pint Art. PA-004 se
-muestra solo para cotizar: la Excel conserva $26.000 y Gamma muestra Antifaces
-Matricaria a $25.000 sin confirmar ese código. No se vende con precio dudoso.
+seis cajas de mascotas y sus seis opciones con logo, y Pint Art. PA-004 (Sobre de antifaces) está disponible para compra a $26.000 CLP,
+IVA incluido, precio confirmado por Katherine el 20/10/2026.
 
 Los precios se contrastaron el 20/10/2026 con la pestaña Productos de la Excel
 `Famores_Codigos_Catalogo_Octubre_2026.xlsx` y
