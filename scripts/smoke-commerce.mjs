@@ -37,20 +37,22 @@ try {
   const october=await octoberQuote.json();assert.equal(october.total,45600);assert.equal(october.discount,2400);assert.equal(october.commission,3832);
   const catalogHtml=await (await timedFetch(base)).text();
   assert(catalogHtml.indexOf('id="fam-pro-pin-20"') < catalogHtml.indexOf('id="fam-pro-psp-00"'));
-  const masksCard=catalogHtml.match(/<article\b[^>]*\bid="pa-004"[\s\S]*?<\/article>/)?.[0];
-  assert(masksCard,'PA-004 is present in the catalog');
-  assert(masksCard.includes('$26.000'));
-  assert(masksCard.includes('/comprar?add=pa-004'));
-  assert(!/Consultar precio|precio por confirmar|Antifaces Matricaria|Solicitar cotización/i.test(masksCard));
+  assert(!catalogHtml.includes('Atelier Traisy Audrey'));
   const cartHtml=await (await timedFetch(base+'/comprar')).text();
-  assert.equal((cartHtml.match(/data-product=/g)||[]).length,27);
-  const masksQuote=await timedFetch(base+'/api/cart/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{product:'Sobre de antifaces',quantity:3}],courier:'retiro'})});
-  assert.equal(masksQuote.status,200);
-  const masks=await masksQuote.json();assert.equal(masks.subtotal,78000);assert.equal(masks.total,78000);assert.equal(masks.items[0].unitPrice,26000);
+  assert.equal((cartHtml.match(/data-product=/g)||[]).length,23);
+  for (const [slug, product] of [
+    ['pa-001','Set de antifaces para adultos'], ['pa-002','Set de antifaces para niños'],
+    ['pa-003','Sobres Pint Art'], ['pa-004','Sobre de antifaces'],
+  ]) {
+    assert(!catalogHtml.includes('id="'+slug+'"'));
+    assert(!cartHtml.includes('data-product="'+product+'"'));
+    const retiredQuote=await timedFetch(base+'/api/cart/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{product,quantity:1}],courier:'retiro'})});
+    assert.equal(retiredQuote.status,400,product+' must not be sold');
+  }
   const assets=[...new Set([...catalogHtml.matchAll(/src="(\/images\/products\/[^\"]+\.webp)"/g)].map(m=>m[1]))];
-  assert.equal(assets.length,27);
+  assert.equal(assets.length,23);
   for(const image of assets) assert.equal((await timedFetch(base+image)).status,200,image);
-  console.log('Smoke: October catalog, 27 images, 5% discount and 10% net commission checked');
+  console.log('Smoke: Famores catalog, 23 images, retired products rejected, discounts and commission checked');
   const partner={name:'Example applicant',email:'applicant@example.test',phone:'test phone',city:'Example city',mode:'mayorista',consent:'yes'};
   assert.equal((await post('/api/partners/apply',{...partner,consent:''})).status,400);
   assert.equal((await post('/api/partners/apply',partner)).status,303);

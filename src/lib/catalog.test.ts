@@ -12,8 +12,8 @@ it('uses the October prices and keeps the mixed Pro immediately after painted Pr
   expect(CATALOG.find(p=>p.code==='FAM-PRO-PIN-20')).toMatchObject({price:69170,description:expect.stringContaining('color base')});
 });
 it('offers all confirmed variants with matching server prices and local photos',()=>{
-  expect(SALE_PRODUCTS).toHaveLength(27);
-  expect(new Set(SALE_PRODUCTS.map(p=>p.name)).size).toBe(27);
+  expect(SALE_PRODUCTS).toHaveLength(23);
+  expect(new Set(SALE_PRODUCTS.map(p=>p.name)).size).toBe(23);
   expect(new Set(CATALOG.map(p=>p.slug)).size).toBe(CATALOG.length);
   for(const p of CATALOG) expect(existsSync('public'+p.image)).toBe(true);
   for(const p of SALE_PRODUCTS) expect(normalizeCartItems([{product:p.name,quantity:1}])[0].unitPrice).toBe(p.price);
@@ -22,9 +22,9 @@ it('offers all confirmed variants with matching server prices and local photos',
   expect(naturalPets).toHaveLength(7);
   expect(new Set(naturalPets.map(p=>p.image)).size).toBe(7);
 });
-it('offers PA-004 at the confirmed final price of 26000 CLP',()=>{
-  const p=CATALOG.find(p=>p.code==='PA-004')!;
-  expect(p.purchasable).toBe(true);
-  expect(p.price).toBe(26000);
-  expect(normalizeCartItems([{product:p.name,quantity:1}])[0].unitPrice).toBe(26000);
+it('rejects retired Pint Art products from stale carts and direct requests',()=>{
+  expect(CATALOG.some(p=>p.code.startsWith('PA-'))).toBe(false);
+  for(const product of ['Set de antifaces para adultos','Set de antifaces para niños','Sobres Pint Art','Sobre de antifaces']) {
+    expect(()=>normalizeCartItems([{product,quantity:1}])).toThrow('Producto no válido.');
+  }
 });

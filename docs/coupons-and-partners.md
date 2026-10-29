@@ -1,5 +1,9 @@
 # Cupones, alianzas y acceso por vendedor
 
+## Actualización del catálogo — 29/10/2026
+
+La alianza con Traisy/Atelier terminó por decisión de Katherine. PA-001, PA-002, PA-003 y PA-004 quedan retirados de catálogo y carrito; las solicitudes antiguas con esos productos son rechazadas. Se conservan archivos y pedidos históricos, y todos los precios/variantes de Famores restantes. Las referencias comerciales de octubre más abajo son históricas y no reactivan Pint Art. El catálogo vigente tiene 23 variantes comprables.
+
 ## Arquitectura y activación
 
 Se conserva Astro SSR, Flow y el alojamiento actual. El módulo opcional usa

@@ -1,4 +1,5 @@
-// Catálogo octubre 2026: Gamma https://gamma.app/docs/38wsdwaih1fplnl
+// Catálogo Famores: precios conservados de la revisión del 20/10/2026.
+// Pint Art retirado el 29/10/2026 según cierre de alianza confirmado por Katherine.
 // Contrastado con Productos de la Excel el 20/10/2026. Precios finales, IVA incluido.
 export type CatalogProduct = {
   code: string; slug: string; name: string; price: number; image: string;
@@ -279,54 +280,6 @@ export const CATALOG: CatalogProduct[] = [
     "height": 960,
     "description": "1 mascota; sin caja. Pintado.",
     "note": "Imagen ilustrativa. Una mascota pintada, sin caja.",
-    "purchasable": true
-  },
-  {
-    "code": "PA-001",
-    "slug": "pa-001",
-    "name": "Set de antifaces para adultos",
-    "price": 15000,
-    "image": "/images/products/pa-001.webp",
-    "width": 707,
-    "height": 1000,
-    "description": "Set de antifaces. Para pintar y decorar.",
-    "note": "",
-    "purchasable": true
-  },
-  {
-    "code": "PA-002",
-    "slug": "pa-002",
-    "name": "Set de antifaces para niños",
-    "price": 12000,
-    "image": "/images/products/pa-002.webp",
-    "width": 707,
-    "height": 1000,
-    "description": "Set de antifaces. Para pintar y decorar.",
-    "note": "",
-    "purchasable": true
-  },
-  {
-    "code": "PA-003",
-    "slug": "pa-003",
-    "name": "Sobres Pint Art",
-    "price": 25000,
-    "image": "/images/products/pa-003.webp",
-    "width": 1000,
-    "height": 750,
-    "description": "Sobre Pint Art. Hojas para colorear.",
-    "note": "",
-    "purchasable": true
-  },
-  {
-    "code": "PA-004",
-    "slug": "pa-004",
-    "name": "Sobre de antifaces",
-    "price": 26000,
-    "image": "/images/products/pa-004.webp",
-    "width": 707,
-    "height": 1000,
-    "description": "Sobre de antifaces. Diseños para colorear.",
-    "note": "",
     "purchasable": true
   }
 ];
