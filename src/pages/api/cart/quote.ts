@@ -1,15 +1,15 @@
 import type { APIRoute } from "astro";
-import { calculateCartOrder } from "../../../lib/cart";
+import { quote } from "../../../lib/commerce";
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const result = calculateCartOrder({
+    const result = quote({
       items: Array.isArray(body.items) ? body.items : [],
       courier: String(body.courier || "").trim(),
       region: String(body.region || "").trim(),
       commune: String(body.commune || "").trim(),
-    });
+    }, body.couponCode);
 
     return Response.json(result, {
       headers: { "Cache-Control": "no-store" },

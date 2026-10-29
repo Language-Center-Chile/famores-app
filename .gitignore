@@ -45,3 +45,9 @@ Actualizacion_Presentacion_Famores.md
 # QA visual temporal
 qa_preview/
 scripts_tmp_preview.cjs
+
+# Private commerce data
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

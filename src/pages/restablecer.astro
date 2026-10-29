@@ -1,0 +1,7 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { privateHeaders } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+Astro.response.headers.set('Referrer-Policy','no-referrer');
+---
+<Layout title="Nueva contraseña | Famores"><main id="contenido-principal" class="max-w-lg mx-auto px-6 py-12"><h1 class="text-3xl font-bold my-6">Nueva contraseña</h1><p>El enlace vence en una hora y solo puede usarse una vez.</p><form method="post" action="/api/account/reset" class="grid gap-3 my-6"><input id="account-token" name="token" type="hidden"/><label for="password">Contraseña (mínimo 12 caracteres)</label><input id="password" name="password" type="password" required minlength="12" maxlength="256" autocomplete="new-password" class="border rounded-xl p-3"/><button class="rounded-xl bg-terapia-sage text-white p-3">Guardar contraseña</button></form></main><script is:inline>document.getElementById('account-token').value=location.hash.slice(1);history.replaceState(null,'',location.pathname);</script></Layout>

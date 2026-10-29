@@ -119,21 +119,4 @@ const whatsappUrl = whatsappMessage
     </a>
   </main>
 
-  {whatsappUrl && (
-    <script is:inline>
-      try {
-        const raw = sessionStorage.getItem("famoresCheckoutContact");
-        const saved = raw ? JSON.parse(raw) : null;
-        const phone = String(saved?.phone || "").trim();
-        const link = document.getElementById("whatsapp-confirm");
-        if (phone && link) {
-          const url = new URL(link.href);
-          const text = url.searchParams.get("text") || "";
-          url.searchParams.set("text", `${text}\n- Teléfono: ${phone}`);
-          link.href = url.toString();
-        }
-        sessionStorage.removeItem("famoresCheckoutContact");
-      } catch {}
-    </script>
-  )}
 </Layout>

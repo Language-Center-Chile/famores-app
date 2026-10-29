@@ -1,13 +1,7 @@
 import { BOX_PRICE, getShippingRate, COURIER_LABELS, type DomesticCourier } from "./checkout-config";
+import { PRODUCT_PRICES } from './catalog';
 
-export const CART_PRODUCTS = {
-  "Set Standard Pintado": 39990,
-  "Set Standard con Expresiones": 42990,
-  "Set Sin Pintar": 25000,
-  "Set Personalizado": 45000,
-  "Mascota Pintada": 4500,
-  "Mascota Sin Pintar": 2500,
-} as const;
+export const CART_PRODUCTS = PRODUCT_PRICES;
 
 export type CartProductName = keyof typeof CART_PRODUCTS;
 
@@ -31,7 +25,7 @@ export function normalizeCartItems(items: CartItemInput[]) {
   for (const raw of items) {
     const product = String(raw?.product || "").trim() as CartProductName;
     const quantity = Number(raw?.quantity);
-    if (!(product in CART_PRODUCTS)) throw new Error("Producto no válido.");
+    if (!Object.hasOwn(CART_PRODUCTS, product)) throw new Error("Producto no válido.");
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_PRODUCT) {
       throw new Error(`Cantidad no válida para ${product}.`);
     }

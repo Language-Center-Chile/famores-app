@@ -1,0 +1,7 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { privateHeaders } from '../lib/account';
+Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
+Astro.response.headers.set('Referrer-Policy','no-referrer');
+---
+<Layout title="Verifica tu correo | Famores"><main id="contenido-principal" class="max-w-lg mx-auto px-6 py-12"><h1 class="text-3xl font-bold my-6">Verificar correo</h1><p>Confirma que solicitaste crear una cuenta de comprador en Famores. El enlace vence en 24 horas.</p><form method="post" action="/api/account/verify" class="grid gap-3 my-6"><label for="password">Elige tu contraseña (mínimo 12 caracteres)</label><input name="password" id="password" type="password" required minlength="12" maxlength="256" autocomplete="new-password" class="border rounded-xl p-3"/><input id="account-token" name="token" type="hidden"/><button class="rounded-xl bg-terapia-sage text-white p-3">Confirmar mi correo</button></form></main><script is:inline>document.getElementById('account-token').value=location.hash.slice(1);history.replaceState(null,'',location.pathname);</script></Layout>

@@ -1,15 +1,16 @@
+import { PRODUCT_PRICES } from "./catalog";
 export const BOX_PRICE = 1500;
 
 export const PRODUCTS = {
-  "Set Standard Pintado": 39990,
-  "Set Standard con Expresiones": 42990,
-  "Set Sin Pintar": 25000,
-  "Set Personalizado": 45000,
+  "Set Standard Pintado": PRODUCT_PRICES["Set Standard Pintado"],
+  "Set Standard con Expresiones": PRODUCT_PRICES["Set Standard con Expresiones"],
+  "Set Sin Pintar": PRODUCT_PRICES["Set Sin Pintar"],
+  "Set Personalizado": PRODUCT_PRICES["Set Personalizado"],
 } as const;
 
 export const PETS = {
-  "Mascota Pintada": 4500,
-  "Mascota Sin Pintar": 2500,
+  "Mascota Pintada": PRODUCT_PRICES["Mascota Pintada"],
+  "Mascota Sin Pintar": PRODUCT_PRICES["Mascota Sin Pintar"],
 } as const;
 
 export const DOMESTIC_COURIERS = ["blue", "starken", "chilexpress"] as const;
