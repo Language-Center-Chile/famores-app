@@ -30,8 +30,29 @@ try {
   assert.equal((await post('/api/account/coupons',{code:'SELLER10',sellerId:'seller',kind:'percent',value:'10',maxUses:'5',expiry},cookie)).status,303);
   console.log('Smoke: coupon created');
   const quote=await timedFetch(base+'/api/cart/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{product:'Set Sin Pintar',quantity:1}],courier:'retiro',couponCode:'SELLER10',discount:25000,total:0})});
-  assert.equal(quote.status,200);assert.equal((await quote.json()).total,22500);
+  assert.equal(quote.status,200);assert.equal((await quote.json()).total,27000);
   console.log('Smoke: discounted quote checked');
+  assert.equal((await post('/api/account/coupons',{code:'CATALOG5',sellerId:'seller',kind:'percent',value:'5',maxUses:'5',expiry,publicListing:'yes'},cookie)).status,303);
+  const octoberQuote=await timedFetch(base+'/api/cart/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{product:'Set Standard Pintado',quantity:1}],courier:'retiro',couponCode:'CATALOG5'})});
+  const october=await octoberQuote.json();assert.equal(october.total,45600);assert.equal(october.discount,2400);assert.equal(october.commission,3832);
+  const catalogHtml=await (await timedFetch(base)).text();
+  assert(catalogHtml.indexOf('id="fam-pro-pin-20"') < catalogHtml.indexOf('id="fam-pro-psp-00"'));
+  assert(!catalogHtml.includes('Atelier Traisy Audrey'));
+  const cartHtml=await (await timedFetch(base+'/comprar')).text();
+  assert.equal((cartHtml.match(/data-product=/g)||[]).length,23);
+  for (const [slug, product] of [
+    ['pa-001','Set de antifaces para adultos'], ['pa-002','Set de antifaces para niños'],
+    ['pa-003','Sobres Pint Art'], ['pa-004','Sobre de antifaces'],
+  ]) {
+    assert(!catalogHtml.includes('id="'+slug+'"'));
+    assert(!cartHtml.includes('data-product="'+product+'"'));
+    const retiredQuote=await timedFetch(base+'/api/cart/quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[{product,quantity:1}],courier:'retiro'})});
+    assert.equal(retiredQuote.status,400,product+' must not be sold');
+  }
+  const assets=[...new Set([...catalogHtml.matchAll(/src="(\/images\/products\/[^\"]+\.webp)"/g)].map(m=>m[1]))];
+  assert.equal(assets.length,23);
+  for(const image of assets) assert.equal((await timedFetch(base+image)).status,200,image);
+  console.log('Smoke: Famores catalog, 23 images, retired products rejected, discounts and commission checked');
   const partner={name:'Example applicant',email:'applicant@example.test',phone:'test phone',city:'Example city',mode:'mayorista',consent:'yes'};
   assert.equal((await post('/api/partners/apply',{...partner,consent:''})).status,400);
   assert.equal((await post('/api/partners/apply',partner)).status,303);
@@ -60,6 +81,8 @@ try {
   assert.equal((await timedFetch(base+'/panel',{headers:{Cookie:buyerCookie},redirect:'manual'})).headers.get('location'),'/mi-cuenta');
   assert.equal((await post('/api/account/profile',{name:'Buyer',phone:'test phone',deliveryAddress:'Private buyer address',customerId:'never-save',saveDetails:'yes'},buyerCookie)).status,303);
   const ownPage=await (await timedFetch(base+'/mi-cuenta',{headers:{Cookie:buyerCookie}})).text();assert(ownPage.includes('BUYER-OWN-ORDER'));assert(!ownPage.includes('BUYER-OTHER-ORDER'));
+  assert(ownPage.includes('Cupones disponibles'));assert(ownPage.includes('CATALOG5'));assert(!ownPage.includes('SELLER10'));
+  assert(ownPage.includes('/comprar?coupon=CATALOG5'));
   const checkout=await timedFetch(base+'/comprar',{headers:{Cookie:buyerCookie}});assert.equal(checkout.headers.get('cache-control'),'no-store');const checkoutHtml=await checkout.text();assert(checkoutHtml.includes('Private buyer address'));
   assert.match(checkoutHtml, /id="international-address"[^>]*value="Private buyer address"/);
   const guestCheckout=await (await timedFetch(base+'/comprar')).text();assert(!guestCheckout.includes('Private buyer address'));

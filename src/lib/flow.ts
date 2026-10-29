@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 type FlowParams = Record<string, string | number>;
 
 function getFlowConfig() {
+  if (process.env.FAMORES_LOCAL_REVIEW === '1') throw new Error('Pagos deshabilitados en la revisión local.');
   const apiKey = process.env.FLOW_API_KEY;
   const secretKey = process.env.FLOW_SECRET_KEY;
   const apiUrl = process.env.FLOW_API_URL || "https://sandbox.flow.cl/api";

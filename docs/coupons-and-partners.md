@@ -1,5 +1,9 @@
 # Cupones, alianzas y acceso por vendedor
 
+## Actualización del catálogo — 29/10/2026
+
+La alianza con Traisy/Atelier terminó por decisión de Katherine. PA-001, PA-002, PA-003 y PA-004 quedan retirados de catálogo y carrito; las solicitudes antiguas con esos productos son rechazadas. Se conservan archivos y pedidos históricos, y todos los precios/variantes de Famores restantes. Las referencias comerciales de octubre más abajo son históricas y no reactivan Pint Art. El catálogo vigente tiene 23 variantes comprables.
+
 ## Arquitectura y activación
 
 Se conserva Astro SSR, Flow y el alojamiento actual. El módulo opcional usa
@@ -99,8 +103,8 @@ de liberar esa reserva; no se ofrece un botón para marcar una venta pagada a ma
 Los pedidos históricos previos al módulo no se importan automáticamente; sus
 callbacks siguen aceptándose. El dashboard muestra ventas desde la activación.
 Una confirmación de un pedido no registrado no crea una venta inventada.
-Los totales incluyen despacho y caja y están etiquetados así. No representan
-comisiones ni utilidades; las tasas y reglas comerciales no están definidas.
+Los totales cobrados incluyen despacho y embalaje de transporte. La comisión se
+registra aparte y no equivale a utilidad.
 Reembolsos posteriores a un pago requieren conciliación adicional (no implementada).
 
 ## Notificaciones
@@ -127,7 +131,7 @@ compartida y un trabajador de outbox. Últimos 500 pedidos y 100 solicitudes/avi
 visibles; métricas de pagos calculadas sobre todo el historial. La base puede crecer:
 política de retención, exportaciones y borrado de solicitudes aún no están incluidos.
 El esquema inicial se crea al abrir DB; cambios futuros necesitan migraciones.
-No hay integración automática a Sheets/orquestador ni liquidación de comisiones.
+No hay integración automática a Sheets/orquestador ni pago automático de comisiones.
 
 La ampliación de compradores y la preparación de privacidad se detallan en [privacidad y cuentas](privacy-and-customers.md).
 
@@ -160,3 +164,69 @@ los pagos recibidos durante el cambio antes de reabrir la ampliación.
 base temporal, prueba login, CSRF, consentimiento, cálculo y aislamiento por
 vendedor, y elimina la base al terminar. No llama a pagos ni envía mensajes.
 El pipeline de CI ejecuta el smoke después del build.
+
+
+## Catálogo y acuerdo comercial de octubre de 2026
+
+`src/lib/catalog.ts` es la única fuente de productos, precios finales con IVA,
+códigos, variantes e imágenes para portada y carrito. Incluye Standard,
+Personalizado, Pro (PSP justo después de PIN), Esencial, mascotas individuales,
+seis cajas de mascotas y sus seis opciones con logo, y Pint Art. PA-004 (Sobre de antifaces) está disponible para compra a $26.000 CLP,
+IVA incluido, precio confirmado por Katherine el 20/10/2026.
+
+Los precios se contrastaron el 20/10/2026 con la pestaña Productos de la Excel
+`Famores_Codigos_Catalogo_Octubre_2026.xlsx` y
+https://gamma.app/docs/38wsdwaih1fplnl. Imágenes locales tomadas de las fichas
+Gamma; cajas de 6/8 mascotas y productos personalizados indican imagen referencial.
+El embalaje de transporte del checkout es distinto de la caja de presentación
+incluida en cada kit.
+
+Al crear un código desde el panel, el descuento sugerido es **5%**. Cada cupón
+asignado a un vendedor nuevo registra **10%** de comisión sobre el neto de
+productos después del descuento (dividir por 1,19 y redondear al peso).
+Envío y embalaje de transporte no generan descuento ni comisión. No se apilan
+cupones. Los códigos no se activan automáticamente: el administrador elige
+el código, vendedor, vencimiento y cupo desde el panel ya existente.
+
+Ejemplo: Standard pintado $48.000. Descuento $2.400; comprador paga $45.600;
+neto $38.319; comisión $3.832. Si Traisy también pinta las 14 figuras cobra
+$15.000 aparte; quedan $19.487 antes de figuras base y demás costos. Los
+extras mantienen sus tarifas de pintura: figura pequeña $100; casa un color
+$500; casa con diseño $1.000. No se infiere quién pinta por el código de venta.
+Estos costos no se deducen de la comisión ni se transfieren automáticamente.
+
+Las columnas SQLite se agregan al abrir la base. Cupones y pedidos anteriores
+conservan comisión cero: no se recalcula el historial. Un nuevo pedido guarda
+su comisión y base neta en la reserva; los callbacks confirmados hacen que la
+comisión aparezca en totales pagados, sin duplicarla. Pendientes, rechazados y
+anulados no suman comisión devengada. El panel la registra para liquidación
+operativa; no envía pagos al vendedor ni certifica utilidad.
+
+
+### Precio Pro y cupones de compradores (20/10/2026)
+
+FAM-PRO-PIN-20 (color base): **$69.170 IVA incluido**, neto $58.126 e IVA
+$11.044. Se toma el PSP de $77.500 como referencia de utilidad en pesos antes
+de promociones, suponiendo iguales los demás costos: pintura de 14 figuras
+simples 14 × $500 = $7.000, más casa $500 y cinco extras × $100 = $1.000.
+Pintura total $8.000 frente a $15.000 del PSP: ahorro neto $7.000. La Excel
+registra el cálculo; no se presenta como validación de costos absolutos.
+
+La cuenta de comprador mantiene pedidos, perfil opcional y controles de cuenta.
+Ahora incluye «Cupones disponibles» con códigos publicados por administración,
+descuento, vencimiento y enlace para usarlos en el carrito. Cada cupón necesita
+la elección explícita «Mostrar este código a compradores». Los códigos antiguos
+y privados no se publican automáticamente. No se muestran códigos vencidos,
+agotados, desactivados ni asociados a vendedores retirados. Los datos del
+vendedor y sus comisiones no aparecen en esa sección. El checkout revalida
+cualquier código y su capacidad; ver el cupón no reserva su uso.
+
+### Revisión local en VS Code
+
+Ejecutar `npm ci` y `npm run dev:review` con Node >=22.13.0. El comando prepara
+una base temporal, crea únicamente cuentas ficticias y publica DEMO5 para
+probarlo desde «Mi cuenta». Imprime las direcciones y credenciales de prueba.
+Busca un puerto local libre desde 3000; no sobrescribe `.env` ni bases reales.
+Pagos, callbacks externos y correo permanecen deshabilitados. El registro y
+la recuperación reales requieren configurar el correo fuera de esta demo.
+Al cerrar el proceso se elimina la base temporal. No se hace merge ni deploy.

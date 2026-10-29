@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { commerceEnabled } from '../lib/commerce';
+import { commerceEnabled, buyerCoupons } from '../lib/commerce';
 import { customerData } from '../lib/customer';
 import { privateHeaders, sessionAccount, SESSION_COOKIE } from '../lib/account';
 Object.entries(privateHeaders).forEach(([key,value])=>Astro.response.headers.set(key,value));
@@ -8,12 +8,26 @@ const account=commerceEnabled()?sessionAccount(Astro.cookies.get(SESSION_COOKIE)
 if(!account)return Astro.redirect('/ingresar',303);
 if(account.role!=='customer')return Astro.redirect('/panel',303);
 const data=customerData(account);const profile=data.account.profile;
+const coupons=buyerCoupons(account);
 const fields=[['name','Nombre'],['lastName','Apellido'],['phone','Teléfono'],['region','Región'],['commune','Comuna'],['country','País'],['city','Ciudad'],['deliveryAddress','Dirección de entrega'],['branchName','Sucursal de retiro']];
 const statuses:Record<number,string>={1:'Pendiente',2:'Pagado',3:'Rechazado',4:'Anulado'};
 ---
 <Layout title="Mi cuenta | Famores"><main id="contenido-principal" class="max-w-4xl mx-auto px-6 py-10">
   <div class="flex justify-between gap-4"><a href="/comprar">Seguir comprando</a><form method="post" action="/api/account/logout"><button class="underline">Cerrar sesión</button></form></div>
   <h1 class="text-3xl font-bold my-6">Hola, {account.name}</h1><p>{account.email}</p>
+  <section aria-labelledby="cupones-titulo" class="my-8">
+    <h2 id="cupones-titulo" class="text-xl font-bold my-5">Cupones disponibles</h2>
+    <p class="text-sm">Usa un código por pedido. El descuento se aplica a productos, sin incluir despacho ni embalaje de transporte. Se verifica nuevamente al comprar.</p>
+    <div class="grid sm:grid-cols-2 gap-4 my-4">
+      {coupons.map(c=><article class="bg-white border rounded-xl p-5">
+        <h3 class="text-lg font-bold">{c.code}</h3>
+        <p>{c.kind==='percent' ? `${c.value}% de descuento` : `$${c.value.toLocaleString('es-CL')} de descuento`}</p>
+        <p class="text-sm my-2">Válido hasta {new Date(c.expiresAt).toLocaleDateString('es-CL',{timeZone:'America/Santiago'})}, sujeto a disponibilidad.</p>
+        <a href={`/comprar?coupon=${encodeURIComponent(c.code)}`} class="inline-flex mt-2 rounded-xl bg-terapia-sage text-white font-semibold px-4 py-3">Usar {c.code}</a>
+      </article>)}
+    </div>
+    {!coupons.length&&<p class="my-4">Por ahora no hay cupones publicados disponibles. Si recibiste un código, puedes ingresarlo directamente en el carrito.</p>}
+  </section>
   <h2 class="text-xl font-bold my-5">Datos para próximas compras</h2><p class="text-sm">Guardar estos datos es opcional. No guardamos tu RUT/DNI ni datos de tarjeta en este perfil. Al desmarcar la casilla y guardar, retiramos tus datos de autocompletado; los pedidos conservan los datos necesarios para su gestión.</p>
   {Astro.url.searchParams.has('ok')&&<p role="status">Preferencias actualizadas.</p>}
   <form method="post" action="/api/account/profile" class="grid sm:grid-cols-2 gap-3 my-5">
